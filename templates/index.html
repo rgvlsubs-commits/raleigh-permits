@@ -27,30 +27,62 @@
                 <span class="stat-label">Total Permits</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value" id="top-type">--</span>
-                <span class="stat-label">Most Common Type</span>
+                <span class="stat-value" id="residential-count">--</span>
+                <span class="stat-label">Residential</span>
             </div>
             <div class="stat-card">
-                <span class="stat-value" id="unique-types">--</span>
-                <span class="stat-label">Permit Types</span>
+                <span class="stat-value" id="commercial-count">--</span>
+                <span class="stat-label">Non-Residential</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="new-construction">--</span>
+                <span class="stat-label">New Construction</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="finaled-count">--</span>
+                <span class="stat-label">Finaled</span>
             </div>
         </section>
 
         <!-- Map Section -->
         <section class="map-section">
             <h2>Permit Locations</h2>
+            <div class="map-legend">
+                <span class="legend-item"><span class="legend-dot residential"></span> Residential</span>
+                <span class="legend-item"><span class="legend-dot commercial"></span> Non-Residential</span>
+            </div>
             <div id="map"></div>
         </section>
 
-        <!-- Charts Section -->
+        <!-- Charts Row 1: Timeline -->
         <section class="charts-section">
-            <div class="chart-container">
+            <div class="chart-container full-width">
                 <h2>Permits Over Time</h2>
                 <canvas id="timeline-chart"></canvas>
             </div>
+        </section>
+
+        <!-- Charts Row 2: Breakdowns -->
+        <section class="charts-section">
             <div class="chart-container">
-                <h2>Permits by Type</h2>
-                <canvas id="type-chart"></canvas>
+                <h2>Residential vs Non-Residential</h2>
+                <canvas id="class-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Permit Status</h2>
+                <canvas id="status-chart"></canvas>
+            </div>
+        </section>
+
+        <!-- Charts Row 3: More Breakdowns -->
+        <section class="charts-section">
+            <div class="chart-container">
+                <h2>New vs Existing Construction</h2>
+                <canvas id="work-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Housing Type</h2>
+                <canvas id="housing-chart"></canvas>
             </div>
         </section>
 
@@ -59,8 +91,14 @@
             <h2>Permit Details</h2>
             <div class="table-controls">
                 <input type="text" id="search-input" placeholder="Search permits...">
-                <select id="type-filter">
-                    <option value="">All Types</option>
+                <select id="class-filter">
+                    <option value="">All Classes</option>
+                </select>
+                <select id="housing-filter">
+                    <option value="">All Housing Types</option>
+                </select>
+                <select id="status-filter">
+                    <option value="">All Statuses</option>
                 </select>
             </div>
             <div class="table-wrapper">
@@ -68,7 +106,8 @@
                     <thead>
                         <tr>
                             <th data-sort="permit_num">Permit #</th>
-                            <th data-sort="type">Type</th>
+                            <th data-sort="permit_class">Class</th>
+                            <th data-sort="housing_type">Housing Type</th>
                             <th data-sort="address">Address</th>
                             <th data-sort="issue_date">Issue Date</th>
                             <th data-sort="status">Status</th>

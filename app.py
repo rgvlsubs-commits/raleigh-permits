@@ -35,6 +35,10 @@ def process_permits(geojson_data):
     permits = []
     type_counts = {}
     timeline_data = {}
+    class_counts = {}  # Residential vs Non-Residential
+    housing_counts = {}  # Single Family, Multi-family, etc.
+    work_counts = {}  # New vs Existing
+    status_counts = {}  # Issued vs Finaled
 
     for feature in features:
         props = feature.get("properties", {})
@@ -47,6 +51,12 @@ def process_permits(geojson_data):
         status = props.get("statuscurrentmapped") or props.get("statuscurrent") or "Unknown"
         permit_num = props.get("permitnum") or "N/A"
         description = props.get("proposedworkdescription") or props.get("description") or ""
+
+        # New category fields
+        permit_class = props.get("permitclassmapped") or "Unknown"
+        housing_type = props.get("censuslanduse") or "Unknown"
+        work_type = props.get("workclassmapped") or "Unknown"
+        work_class = props.get("workclass") or "Unknown"
 
         # Build address from components
         addr_parts = [
@@ -75,11 +85,27 @@ def process_permits(geojson_data):
             "issue_date": issue_date.strftime("%Y-%m-%d") if issue_date else "Unknown",
             "lng": coords[0] if coords else None,
             "lat": coords[1] if coords else None,
+            "permit_class": permit_class,
+            "housing_type": housing_type,
+            "work_type": work_type,
+            "work_class": work_class,
         }
         permits.append(permit)
 
         # Count by type
         type_counts[permit_type] = type_counts.get(permit_type, 0) + 1
+
+        # Count by class (Residential vs Non-Residential)
+        class_counts[permit_class] = class_counts.get(permit_class, 0) + 1
+
+        # Count by housing type
+        housing_counts[housing_type] = housing_counts.get(housing_type, 0) + 1
+
+        # Count by work type (New vs Existing)
+        work_counts[work_type] = work_counts.get(work_type, 0) + 1
+
+        # Count by status
+        status_counts[status] = status_counts.get(status, 0) + 1
 
         # Group by week for timeline
         if issue_date:
@@ -89,13 +115,21 @@ def process_permits(geojson_data):
     # Sort timeline by date
     sorted_timeline = sorted(timeline_data.items())
 
-    # Sort types by count
+    # Sort all counts by value
     sorted_types = sorted(type_counts.items(), key=lambda x: x[1], reverse=True)
+    sorted_classes = sorted(class_counts.items(), key=lambda x: x[1], reverse=True)
+    sorted_housing = sorted(housing_counts.items(), key=lambda x: x[1], reverse=True)
+    sorted_work = sorted(work_counts.items(), key=lambda x: x[1], reverse=True)
+    sorted_status = sorted(status_counts.items(), key=lambda x: x[1], reverse=True)
 
     return {
         "permits": permits,
         "total_count": len(permits),
         "type_counts": dict(sorted_types),
+        "class_counts": dict(sorted_classes),
+        "housing_counts": dict(sorted_housing),
+        "work_counts": dict(sorted_work),
+        "status_counts": dict(sorted_status),
         "timeline": {
             "labels": [t[0] for t in sorted_timeline],
             "values": [t[1] for t in sorted_timeline],

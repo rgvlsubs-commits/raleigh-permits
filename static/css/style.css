@@ -79,6 +79,35 @@ h2 {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.map-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.legend-dot.residential {
+    background-color: #2563eb;
+}
+
+.legend-dot.commercial {
+    background-color: #f59e0b;
+}
+
 #map {
     height: 450px;
     border-radius: 8px;
@@ -102,6 +131,10 @@ h2 {
 
 .chart-container canvas {
     max-height: 300px;
+}
+
+.chart-container.full-width {
+    grid-column: 1 / -1;
 }
 
 /* Table Section */

@@ -1,29 +1,24 @@
 // Global state
 let allPermits = [];
+let permitData = null;
 let map = null;
 let markers = null;
 let timelineChart = null;
-let typeChart = null;
+let classChart = null;
+let statusChart = null;
+let workChart = null;
+let housingChart = null;
 
-// Permit type colors
-const typeColors = {
-    'Building': '#2563eb',
-    'Electrical': '#f59e0b',
-    'Mechanical': '#10b981',
-    'Plumbing': '#8b5cf6',
-    'Fire': '#ef4444',
-    'Demolition': '#6b7280',
-    'default': '#94a3b8'
+// Colors for categories
+const colors = {
+    residential: '#2563eb',
+    commercial: '#f59e0b',
+    new: '#10b981',
+    existing: '#6b7280',
+    issued: '#3b82f6',
+    finaled: '#22c55e',
+    housing: ['#2563eb', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#84cc16']
 };
-
-function getTypeColor(type) {
-    for (const [key, color] of Object.entries(typeColors)) {
-        if (type && type.toLowerCase().includes(key.toLowerCase())) {
-            return color;
-        }
-    }
-    return typeColors.default;
-}
 
 // Initialize map
 function initMap() {
@@ -46,7 +41,9 @@ function populateMap(permits) {
 
     permits.forEach(permit => {
         if (permit.lat && permit.lng) {
-            const color = getTypeColor(permit.type);
+            const isResidential = permit.permit_class === 'Residential';
+            const color = isResidential ? colors.residential : colors.commercial;
+
             const marker = L.circleMarker([permit.lat, permit.lng], {
                 radius: 8,
                 fillColor: color,
@@ -59,7 +56,8 @@ function populateMap(permits) {
             marker.bindPopup(`
                 <strong>${permit.address}</strong><br>
                 <b>Permit:</b> ${permit.permit_num}<br>
-                <b>Type:</b> ${permit.type}<br>
+                <b>Class:</b> ${permit.permit_class}<br>
+                <b>Type:</b> ${permit.housing_type}<br>
                 <b>Status:</b> ${permit.status}<br>
                 <b>Issued:</b> ${permit.issue_date}
             `);
@@ -77,7 +75,6 @@ function createTimelineChart(data) {
         timelineChart.destroy();
     }
 
-    // Format labels (convert "2024-05" to "Week 5, 2024")
     const formattedLabels = data.labels.map(label => {
         const [year, week] = label.split('-');
         return `W${week}`;
@@ -102,42 +99,144 @@ function createTimelineChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    display: false
-                }
+                legend: { display: false }
             },
             scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
+                y: { beginAtZero: true }
             }
         }
     });
 }
 
-// Create type breakdown chart
-function createTypeChart(typeCounts) {
-    const ctx = document.getElementById('type-chart').getContext('2d');
+// Create pie/doughnut chart for Residential vs Non-Residential
+function createClassChart(classCounts) {
+    const ctx = document.getElementById('class-chart').getContext('2d');
 
-    if (typeChart) {
-        typeChart.destroy();
+    if (classChart) {
+        classChart.destroy();
     }
 
-    const labels = Object.keys(typeCounts).slice(0, 10); // Top 10 types
-    const values = labels.map(l => typeCounts[l]);
-    const colors = labels.map(l => getTypeColor(l));
+    const labels = Object.keys(classCounts);
+    const values = Object.values(classCounts);
+    const chartColors = labels.map(l =>
+        l === 'Residential' ? colors.residential : colors.commercial
+    );
 
-    typeChart = new Chart(ctx, {
+    classChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: chartColors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+// Create status chart
+function createStatusChart(statusCounts) {
+    const ctx = document.getElementById('status-chart').getContext('2d');
+
+    if (statusChart) {
+        statusChart.destroy();
+    }
+
+    const labels = Object.keys(statusCounts);
+    const values = Object.values(statusCounts);
+    const chartColors = labels.map(l =>
+        l.toLowerCase().includes('finaled') ? colors.finaled : colors.issued
+    );
+
+    statusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: chartColors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+// Create work type chart (New vs Existing)
+function createWorkChart(workCounts) {
+    const ctx = document.getElementById('work-chart').getContext('2d');
+
+    if (workChart) {
+        workChart.destroy();
+    }
+
+    const labels = Object.keys(workCounts);
+    const values = Object.values(workCounts);
+    const chartColors = labels.map(l =>
+        l === 'New' ? colors.new : colors.existing
+    );
+
+    workChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: chartColors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+// Create housing type chart
+function createHousingChart(housingCounts) {
+    const ctx = document.getElementById('housing-chart').getContext('2d');
+
+    if (housingChart) {
+        housingChart.destroy();
+    }
+
+    // Get top 8 housing types
+    const sorted = Object.entries(housingCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 8);
+
+    const labels = sorted.map(s => s[0]);
+    const values = sorted.map(s => s[1]);
+
+    housingChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
                 label: 'Count',
                 data: values,
-                backgroundColor: colors,
+                backgroundColor: colors.housing,
                 borderRadius: 4
             }]
         },
@@ -146,14 +245,10 @@ function createTypeChart(typeCounts) {
             maintainAspectRatio: false,
             indexAxis: 'y',
             plugins: {
-                legend: {
-                    display: false
-                }
+                legend: { display: false }
             },
             scales: {
-                x: {
-                    beginAtZero: true
-                }
+                x: { beginAtZero: true }
             }
         }
     });
@@ -164,11 +259,12 @@ function populateTable(permits) {
     const tbody = document.getElementById('permits-tbody');
     tbody.innerHTML = '';
 
-    permits.forEach(permit => {
+    permits.slice(0, 500).forEach(permit => {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${permit.permit_num}</td>
-            <td>${permit.type}</td>
+            <td>${permit.permit_class}</td>
+            <td>${permit.housing_type}</td>
             <td>${permit.address}</td>
             <td>${permit.issue_date}</td>
             <td>${permit.status}</td>
@@ -177,16 +273,36 @@ function populateTable(permits) {
     });
 }
 
-// Populate type filter dropdown
-function populateTypeFilter(typeCounts) {
-    const select = document.getElementById('type-filter');
-    select.innerHTML = '<option value="">All Types</option>';
+// Populate filter dropdowns
+function populateFilters(data) {
+    // Class filter
+    const classSelect = document.getElementById('class-filter');
+    classSelect.innerHTML = '<option value="">All Classes</option>';
+    Object.keys(data.class_counts).forEach(cls => {
+        const option = document.createElement('option');
+        option.value = cls;
+        option.textContent = `${cls} (${data.class_counts[cls]})`;
+        classSelect.appendChild(option);
+    });
 
-    Object.keys(typeCounts).forEach(type => {
+    // Housing filter
+    const housingSelect = document.getElementById('housing-filter');
+    housingSelect.innerHTML = '<option value="">All Housing Types</option>';
+    Object.keys(data.housing_counts).forEach(type => {
         const option = document.createElement('option');
         option.value = type;
-        option.textContent = `${type} (${typeCounts[type]})`;
-        select.appendChild(option);
+        option.textContent = `${type} (${data.housing_counts[type]})`;
+        housingSelect.appendChild(option);
+    });
+
+    // Status filter
+    const statusSelect = document.getElementById('status-filter');
+    statusSelect.innerHTML = '<option value="">All Statuses</option>';
+    Object.keys(data.status_counts).forEach(status => {
+        const option = document.createElement('option');
+        option.value = status;
+        option.textContent = `${status} (${data.status_counts[status]})`;
+        statusSelect.appendChild(option);
     });
 }
 
@@ -194,28 +310,44 @@ function populateTypeFilter(typeCounts) {
 function updateStats(data) {
     document.getElementById('total-permits').textContent = data.total_count.toLocaleString();
 
-    const topType = Object.keys(data.type_counts)[0];
-    document.getElementById('top-type').textContent = topType || '--';
+    const residential = data.class_counts['Residential'] || 0;
+    const commercial = data.class_counts['Non-Residential'] || 0;
+    document.getElementById('residential-count').textContent = residential.toLocaleString();
+    document.getElementById('commercial-count').textContent = commercial.toLocaleString();
 
-    document.getElementById('unique-types').textContent = Object.keys(data.type_counts).length;
+    const newConstruction = data.work_counts['New'] || 0;
+    document.getElementById('new-construction').textContent = newConstruction.toLocaleString();
+
+    const finaled = data.status_counts['Permit Finaled'] || 0;
+    document.getElementById('finaled-count').textContent = finaled.toLocaleString();
 }
 
 // Filter permits
 function filterPermits() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const typeFilter = document.getElementById('type-filter').value;
+    const classFilter = document.getElementById('class-filter').value;
+    const housingFilter = document.getElementById('housing-filter').value;
+    const statusFilter = document.getElementById('status-filter').value;
 
     let filtered = allPermits;
 
-    if (typeFilter) {
-        filtered = filtered.filter(p => p.type === typeFilter);
+    if (classFilter) {
+        filtered = filtered.filter(p => p.permit_class === classFilter);
+    }
+
+    if (housingFilter) {
+        filtered = filtered.filter(p => p.housing_type === housingFilter);
+    }
+
+    if (statusFilter) {
+        filtered = filtered.filter(p => p.status === statusFilter);
     }
 
     if (searchTerm) {
         filtered = filtered.filter(p =>
             p.address.toLowerCase().includes(searchTerm) ||
             p.permit_num.toLowerCase().includes(searchTerm) ||
-            p.type.toLowerCase().includes(searchTerm)
+            p.housing_type.toLowerCase().includes(searchTerm)
         );
     }
 
@@ -232,16 +364,19 @@ async function loadData() {
         }
 
         const data = await response.json();
-
+        permitData = data;
         allPermits = data.permits;
 
         // Update UI
         updateStats(data);
         populateMap(data.permits);
         createTimelineChart(data.timeline);
-        createTypeChart(data.type_counts);
+        createClassChart(data.class_counts);
+        createStatusChart(data.status_counts);
+        createWorkChart(data.work_counts);
+        createHousingChart(data.housing_counts);
         populateTable(data.permits);
-        populateTypeFilter(data.type_counts);
+        populateFilters(data);
 
         // Hide loading overlay
         document.getElementById('loading').classList.add('hidden');
@@ -260,7 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set up event listeners
     document.getElementById('search-input').addEventListener('input', filterPermits);
-    document.getElementById('type-filter').addEventListener('change', filterPermits);
+    document.getElementById('class-filter').addEventListener('change', filterPermits);
+    document.getElementById('housing-filter').addEventListener('change', filterPermits);
+    document.getElementById('status-filter').addEventListener('change', filterPermits);
 
     // Load data
     loadData();

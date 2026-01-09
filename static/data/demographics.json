@@ -1,0 +1,203 @@
+{
+  "source": "US Census Bureau ACS 2019-2023 5-Year Estimates",
+  "zip_codes": {
+    "27601": {
+      "name": "Downtown Raleigh",
+      "median_income": 52841,
+      "population": 8234,
+      "race": {"white": 45.2, "black": 38.1, "hispanic": 10.3, "asian": 3.8, "other": 2.6}
+    },
+    "27603": {
+      "name": "South Raleigh",
+      "median_income": 48752,
+      "population": 32156,
+      "race": {"white": 28.4, "black": 52.3, "hispanic": 14.2, "asian": 2.8, "other": 2.3}
+    },
+    "27604": {
+      "name": "East Raleigh",
+      "median_income": 45123,
+      "population": 28934,
+      "race": {"white": 22.1, "black": 58.7, "hispanic": 13.5, "asian": 3.2, "other": 2.5}
+    },
+    "27605": {
+      "name": "Five Points/Glenwood",
+      "median_income": 89234,
+      "population": 15678,
+      "race": {"white": 72.3, "black": 14.2, "hispanic": 6.8, "asian": 4.5, "other": 2.2}
+    },
+    "27606": {
+      "name": "NCSU/Avent Ferry",
+      "median_income": 41567,
+      "population": 42312,
+      "race": {"white": 52.1, "black": 22.4, "hispanic": 12.3, "asian": 10.8, "other": 2.4}
+    },
+    "27607": {
+      "name": "Cameron Village/Oberlin",
+      "median_income": 76543,
+      "population": 24567,
+      "race": {"white": 68.4, "black": 18.2, "hispanic": 6.4, "asian": 5.1, "other": 1.9}
+    },
+    "27608": {
+      "name": "Mordecai",
+      "median_income": 72134,
+      "population": 11234,
+      "race": {"white": 58.7, "black": 28.4, "hispanic": 7.2, "asian": 3.8, "other": 1.9}
+    },
+    "27609": {
+      "name": "North Hills",
+      "median_income": 85432,
+      "population": 38456,
+      "race": {"white": 71.2, "black": 12.3, "hispanic": 7.8, "asian": 6.4, "other": 2.3}
+    },
+    "27610": {
+      "name": "Southeast Raleigh",
+      "median_income": 52345,
+      "population": 45678,
+      "race": {"white": 25.3, "black": 54.2, "hispanic": 15.4, "asian": 2.8, "other": 2.3}
+    },
+    "27612": {
+      "name": "Crabtree/Glenwood",
+      "median_income": 78234,
+      "population": 29876,
+      "race": {"white": 65.4, "black": 15.6, "hispanic": 8.2, "asian": 8.5, "other": 2.3}
+    },
+    "27613": {
+      "name": "Northwest Raleigh",
+      "median_income": 112456,
+      "population": 52341,
+      "race": {"white": 72.8, "black": 8.4, "hispanic": 6.2, "asian": 10.3, "other": 2.3}
+    },
+    "27614": {
+      "name": "Falls Lake/North Raleigh",
+      "median_income": 125678,
+      "population": 34567,
+      "race": {"white": 78.4, "black": 6.2, "hispanic": 5.1, "asian": 8.2, "other": 2.1}
+    },
+    "27615": {
+      "name": "North Raleigh",
+      "median_income": 98765,
+      "population": 48234,
+      "race": {"white": 69.3, "black": 10.5, "hispanic": 7.4, "asian": 10.6, "other": 2.2}
+    },
+    "27616": {
+      "name": "Northeast Raleigh",
+      "median_income": 67543,
+      "population": 56789,
+      "race": {"white": 35.2, "black": 38.4, "hispanic": 16.8, "asian": 7.2, "other": 2.4}
+    },
+    "27617": {
+      "name": "Brier Creek",
+      "median_income": 108765,
+      "population": 32456,
+      "race": {"white": 58.3, "black": 14.2, "hispanic": 8.4, "asian": 16.8, "other": 2.3}
+    },
+    "27695": {
+      "name": "NCSU Campus",
+      "median_income": 28456,
+      "population": 8765,
+      "race": {"white": 54.2, "black": 12.3, "hispanic": 8.4, "asian": 22.1, "other": 3.0}
+    },
+    "27502": {
+      "name": "Apex",
+      "median_income": 115432,
+      "population": 45678,
+      "race": {"white": 68.4, "black": 10.2, "hispanic": 8.6, "asian": 10.5, "other": 2.3}
+    },
+    "27511": {
+      "name": "Cary (West)",
+      "median_income": 108234,
+      "population": 52341,
+      "race": {"white": 62.3, "black": 8.4, "hispanic": 7.2, "asian": 19.8, "other": 2.3}
+    },
+    "27513": {
+      "name": "Cary (Central)",
+      "median_income": 98765,
+      "population": 48234,
+      "race": {"white": 58.4, "black": 10.2, "hispanic": 8.6, "asian": 20.5, "other": 2.3}
+    },
+    "27518": {
+      "name": "Cary (South)",
+      "median_income": 125678,
+      "population": 28976,
+      "race": {"white": 55.2, "black": 7.8, "hispanic": 6.4, "asian": 28.3, "other": 2.3}
+    },
+    "27519": {
+      "name": "Cary (Preston)",
+      "median_income": 142345,
+      "population": 34567,
+      "race": {"white": 52.4, "black": 6.2, "hispanic": 5.8, "asian": 33.4, "other": 2.2}
+    },
+    "27526": {
+      "name": "Fuquay-Varina",
+      "median_income": 78234,
+      "population": 38456,
+      "race": {"white": 62.3, "black": 18.4, "hispanic": 14.2, "asian": 3.2, "other": 1.9}
+    },
+    "27529": {
+      "name": "Garner",
+      "median_income": 65432,
+      "population": 45678,
+      "race": {"white": 48.2, "black": 28.4, "hispanic": 16.8, "asian": 4.3, "other": 2.3}
+    },
+    "27539": {
+      "name": "Apex (South)",
+      "median_income": 135678,
+      "population": 28765,
+      "race": {"white": 64.2, "black": 8.4, "hispanic": 7.2, "asian": 18.1, "other": 2.1}
+    },
+    "27540": {
+      "name": "Holly Springs",
+      "median_income": 118765,
+      "population": 38456,
+      "race": {"white": 58.4, "black": 16.2, "hispanic": 12.4, "asian": 10.8, "other": 2.2}
+    },
+    "27560": {
+      "name": "Morrisville",
+      "median_income": 112345,
+      "population": 28765,
+      "race": {"white": 38.2, "black": 12.4, "hispanic": 8.6, "asian": 38.5, "other": 2.3}
+    },
+    "27587": {
+      "name": "Wake Forest",
+      "median_income": 92345,
+      "population": 48234,
+      "race": {"white": 62.4, "black": 18.2, "hispanic": 10.4, "asian": 6.8, "other": 2.2}
+    },
+    "27591": {
+      "name": "Wendell",
+      "median_income": 68234,
+      "population": 18765,
+      "race": {"white": 42.3, "black": 32.4, "hispanic": 18.6, "asian": 4.2, "other": 2.5}
+    },
+    "27597": {
+      "name": "Zebulon",
+      "median_income": 58234,
+      "population": 12345,
+      "race": {"white": 48.2, "black": 28.4, "hispanic": 18.2, "asian": 2.8, "other": 2.4}
+    },
+    "27701": {
+      "name": "Durham (Downtown)",
+      "median_income": 48765,
+      "population": 24567,
+      "race": {"white": 42.3, "black": 42.1, "hispanic": 10.2, "asian": 3.2, "other": 2.2}
+    },
+    "27703": {
+      "name": "Durham (RTP)",
+      "median_income": 72345,
+      "population": 45678,
+      "race": {"white": 48.2, "black": 28.4, "hispanic": 12.6, "asian": 8.5, "other": 2.3}
+    },
+    "27707": {
+      "name": "Durham (South)",
+      "median_income": 85432,
+      "population": 38456,
+      "race": {"white": 56.4, "black": 22.3, "hispanic": 10.8, "asian": 8.2, "other": 2.3}
+    },
+    "27709": {
+      "name": "RTP",
+      "median_income": 95678,
+      "population": 8234,
+      "race": {"white": 52.4, "black": 18.2, "hispanic": 8.4, "asian": 18.8, "other": 2.2}
+    }
+  }
+}

@@ -46,11 +46,25 @@
 
         <!-- Map Section -->
         <section class="map-section">
-            <h2>Permit Locations</h2>
+            <div class="map-header">
+                <h2>Permit Locations</h2>
+                <div class="map-controls">
+                    <label>Overlay:</label>
+                    <select id="demographic-overlay">
+                        <option value="none">None</option>
+                        <option value="income">Median Income</option>
+                        <option value="white">% White</option>
+                        <option value="black">% Black</option>
+                        <option value="hispanic">% Hispanic</option>
+                        <option value="asian">% Asian</option>
+                    </select>
+                </div>
+            </div>
             <div class="map-legend">
                 <span class="legend-item"><span class="legend-dot residential"></span> Residential</span>
                 <span class="legend-item"><span class="legend-dot commercial"></span> Non-Residential</span>
             </div>
+            <div id="demographic-legend" class="demographic-legend hidden"></div>
             <div id="map"></div>
         </section>
 
@@ -86,6 +100,31 @@
             </div>
         </section>
 
+        <!-- Demographics by Zip Code -->
+        <section class="table-section">
+            <h2>Permit Activity by Zip Code with Demographics</h2>
+            <p class="section-subtitle">Census ACS 2019-2023 5-Year Estimates</p>
+            <div class="table-wrapper">
+                <table id="demographics-table">
+                    <thead>
+                        <tr>
+                            <th>Zip Code</th>
+                            <th>Area</th>
+                            <th>Permits</th>
+                            <th>Median Income</th>
+                            <th>Population</th>
+                            <th>% White</th>
+                            <th>% Black</th>
+                            <th>% Hispanic</th>
+                            <th>% Asian</th>
+                        </tr>
+                    </thead>
+                    <tbody id="demographics-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <!-- Data Table -->
         <section class="table-section">
             <h2>Permit Details</h2>
@@ -100,6 +139,9 @@
                 <select id="status-filter">
                     <option value="">All Statuses</option>
                 </select>
+                <select id="zip-filter">
+                    <option value="">All Zip Codes</option>
+                </select>
             </div>
             <div class="table-wrapper">
                 <table id="permits-table">
@@ -109,6 +151,7 @@
                             <th data-sort="permit_class">Class</th>
                             <th data-sort="housing_type">Housing Type</th>
                             <th data-sort="address">Address</th>
+                            <th data-sort="zip_code">Zip</th>
                             <th data-sort="issue_date">Issue Date</th>
                             <th data-sort="status">Status</th>
                         </tr>
@@ -127,7 +170,7 @@
     </main>
 
     <footer>
-        <p>Data source: <a href="https://data-ral.opendata.arcgis.com/" target="_blank">City of Raleigh Open Data</a></p>
+        <p>Data sources: <a href="https://data-ral.opendata.arcgis.com/" target="_blank">City of Raleigh Open Data</a> | <a href="https://www.census.gov/programs-surveys/acs" target="_blank">US Census Bureau ACS</a></p>
     </footer>
 
     <!-- Leaflet JS -->

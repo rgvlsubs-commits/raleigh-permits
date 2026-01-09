@@ -1,8 +1,10 @@
 // Global state
 let allPermits = [];
 let permitData = null;
+let demographicData = null;
 let map = null;
 let markers = null;
+let demographicCircles = [];
 let timelineChart = null;
 let classChart = null;
 let statusChart = null;
@@ -19,6 +21,22 @@ const colors = {
     finaled: '#22c55e',
     housing: ['#2563eb', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#84cc16']
 };
+
+// Color scales for demographics
+function getIncomeColor(income) {
+    const min = 30000, max = 150000;
+    const normalized = Math.min(1, Math.max(0, (income - min) / (max - min)));
+    const colors = ['#fee2e2', '#fecaca', '#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c'];
+    const index = Math.floor(normalized * (colors.length - 1));
+    return colors[index];
+}
+
+function getRaceColor(percentage) {
+    const normalized = Math.min(1, Math.max(0, percentage / 100));
+    const colors = ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8'];
+    const index = Math.floor(normalized * (colors.length - 1));
+    return colors[index];
+}
 
 // Initialize map
 function initMap() {
@@ -58,12 +76,85 @@ function populateMap(permits) {
                 <b>Permit:</b> ${permit.permit_num}<br>
                 <b>Class:</b> ${permit.permit_class}<br>
                 <b>Type:</b> ${permit.housing_type}<br>
+                <b>Zip:</b> ${permit.zip_code || 'N/A'}<br>
                 <b>Status:</b> ${permit.status}<br>
                 <b>Issued:</b> ${permit.issue_date}
             `);
 
             markers.addLayer(marker);
         }
+    });
+}
+
+// Update demographic overlay on map
+function updateDemographicOverlay(overlayType) {
+    // Remove existing circles
+    demographicCircles.forEach(circle => map.removeLayer(circle));
+    demographicCircles = [];
+
+    const legend = document.getElementById('demographic-legend');
+
+    if (overlayType === 'none' || !demographicData) {
+        legend.classList.add('hidden');
+        return;
+    }
+
+    legend.classList.remove('hidden');
+
+    // Update legend
+    if (overlayType === 'income') {
+        legend.innerHTML = `
+            <span>$30k</span>
+            <div class="gradient income"></div>
+            <span>$150k+</span>
+            <span style="margin-left: 1rem;">Median Household Income</span>
+        `;
+    } else {
+        const label = overlayType.charAt(0).toUpperCase() + overlayType.slice(1);
+        legend.innerHTML = `
+            <span>0%</span>
+            <div class="gradient race"></div>
+            <span>100%</span>
+            <span style="margin-left: 1rem;">% ${label} Population</span>
+        `;
+    }
+
+    // Add demographic circles
+    demographicData.zip_data.forEach(zip => {
+        if (!zip.center || !zip.center[0]) return;
+
+        let color, value;
+        if (overlayType === 'income') {
+            color = getIncomeColor(zip.median_income);
+            value = `$${zip.median_income.toLocaleString()}`;
+        } else {
+            const pct = zip.race[overlayType] || 0;
+            color = getRaceColor(pct);
+            value = `${pct.toFixed(1)}%`;
+        }
+
+        const circle = L.circle([zip.center[0], zip.center[1]], {
+            radius: 2500,
+            fillColor: color,
+            color: color,
+            weight: 1,
+            opacity: 0.6,
+            fillOpacity: 0.4
+        });
+
+        circle.bindPopup(`
+            <strong>${zip.zip_code} - ${zip.name}</strong><br>
+            <b>Permits:</b> ${zip.permit_count}<br>
+            <b>Median Income:</b> $${zip.median_income.toLocaleString()}<br>
+            <b>Population:</b> ${zip.population.toLocaleString()}<br>
+            <b>% White:</b> ${zip.race.white}%<br>
+            <b>% Black:</b> ${zip.race.black}%<br>
+            <b>% Hispanic:</b> ${zip.race.hispanic}%<br>
+            <b>% Asian:</b> ${zip.race.asian}%
+        `);
+
+        circle.addTo(map);
+        demographicCircles.push(circle);
     });
 }
 
@@ -221,7 +312,6 @@ function createHousingChart(housingCounts) {
         housingChart.destroy();
     }
 
-    // Get top 8 housing types
     const sorted = Object.entries(housingCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 8);
@@ -254,6 +344,28 @@ function createHousingChart(housingCounts) {
     });
 }
 
+// Populate demographics table
+function populateDemographicsTable(data) {
+    const tbody = document.getElementById('demographics-tbody');
+    tbody.innerHTML = '';
+
+    data.zip_data.forEach(zip => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${zip.zip_code}</td>
+            <td>${zip.name}</td>
+            <td><strong>${zip.permit_count}</strong></td>
+            <td>$${zip.median_income.toLocaleString()}</td>
+            <td>${zip.population.toLocaleString()}</td>
+            <td>${zip.race.white}%</td>
+            <td>${zip.race.black}%</td>
+            <td>${zip.race.hispanic}%</td>
+            <td>${zip.race.asian}%</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
 // Populate data table
 function populateTable(permits) {
     const tbody = document.getElementById('permits-tbody');
@@ -266,6 +378,7 @@ function populateTable(permits) {
             <td>${permit.permit_class}</td>
             <td>${permit.housing_type}</td>
             <td>${permit.address}</td>
+            <td>${permit.zip_code || 'N/A'}</td>
             <td>${permit.issue_date}</td>
             <td>${permit.status}</td>
         `;
@@ -304,6 +417,16 @@ function populateFilters(data) {
         option.textContent = `${status} (${data.status_counts[status]})`;
         statusSelect.appendChild(option);
     });
+
+    // Zip filter
+    const zipSelect = document.getElementById('zip-filter');
+    zipSelect.innerHTML = '<option value="">All Zip Codes</option>';
+    Object.keys(data.zip_counts).forEach(zip => {
+        const option = document.createElement('option');
+        option.value = zip;
+        option.textContent = `${zip} (${data.zip_counts[zip]})`;
+        zipSelect.appendChild(option);
+    });
 }
 
 // Update stats
@@ -328,6 +451,7 @@ function filterPermits() {
     const classFilter = document.getElementById('class-filter').value;
     const housingFilter = document.getElementById('housing-filter').value;
     const statusFilter = document.getElementById('status-filter').value;
+    const zipFilter = document.getElementById('zip-filter').value;
 
     let filtered = allPermits;
 
@@ -343,11 +467,16 @@ function filterPermits() {
         filtered = filtered.filter(p => p.status === statusFilter);
     }
 
+    if (zipFilter) {
+        filtered = filtered.filter(p => p.zip_code === zipFilter);
+    }
+
     if (searchTerm) {
         filtered = filtered.filter(p =>
             p.address.toLowerCase().includes(searchTerm) ||
             p.permit_num.toLowerCase().includes(searchTerm) ||
-            p.housing_type.toLowerCase().includes(searchTerm)
+            p.housing_type.toLowerCase().includes(searchTerm) ||
+            (p.zip_code && p.zip_code.includes(searchTerm))
         );
     }
 
@@ -355,28 +484,46 @@ function filterPermits() {
     populateMap(filtered);
 }
 
-// Load data
+// Load permit data
+async function loadPermitData() {
+    const response = await fetch('/api/permits');
+    if (!response.ok) throw new Error('Failed to fetch permits');
+    return response.json();
+}
+
+// Load demographic data
+async function loadDemographicData() {
+    const response = await fetch('/api/demographics');
+    if (!response.ok) throw new Error('Failed to fetch demographics');
+    return response.json();
+}
+
+// Load all data
 async function loadData() {
     try {
-        const response = await fetch('/api/permits');
-        if (!response.ok) {
-            throw new Error('Failed to fetch data');
-        }
+        // Load both datasets in parallel
+        const [permits, demographics] = await Promise.all([
+            loadPermitData(),
+            loadDemographicData()
+        ]);
 
-        const data = await response.json();
-        permitData = data;
-        allPermits = data.permits;
+        permitData = permits;
+        demographicData = demographics;
+        allPermits = permits.permits;
 
-        // Update UI
-        updateStats(data);
-        populateMap(data.permits);
-        createTimelineChart(data.timeline);
-        createClassChart(data.class_counts);
-        createStatusChart(data.status_counts);
-        createWorkChart(data.work_counts);
-        createHousingChart(data.housing_counts);
-        populateTable(data.permits);
-        populateFilters(data);
+        // Update UI with permit data
+        updateStats(permits);
+        populateMap(permits.permits);
+        createTimelineChart(permits.timeline);
+        createClassChart(permits.class_counts);
+        createStatusChart(permits.status_counts);
+        createWorkChart(permits.work_counts);
+        createHousingChart(permits.housing_counts);
+        populateTable(permits.permits);
+        populateFilters(permits);
+
+        // Update demographics table
+        populateDemographicsTable(demographics);
 
         // Hide loading overlay
         document.getElementById('loading').classList.add('hidden');
@@ -393,11 +540,17 @@ async function loadData() {
 document.addEventListener('DOMContentLoaded', () => {
     initMap();
 
-    // Set up event listeners
+    // Set up filter event listeners
     document.getElementById('search-input').addEventListener('input', filterPermits);
     document.getElementById('class-filter').addEventListener('change', filterPermits);
     document.getElementById('housing-filter').addEventListener('change', filterPermits);
     document.getElementById('status-filter').addEventListener('change', filterPermits);
+    document.getElementById('zip-filter').addEventListener('change', filterPermits);
+
+    // Demographic overlay listener
+    document.getElementById('demographic-overlay').addEventListener('change', (e) => {
+        updateDemographicOverlay(e.target.value);
+    });
 
     // Load data
     loadData();

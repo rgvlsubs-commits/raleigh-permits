@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raleigh Housing Permits Tracker</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Raleigh Housing Permits Tracker</h1>
+        <p class="subtitle">Building permits issued in the past 180 days</p>
+    </header>
+
+    <main>
+        <!-- Summary Stats -->
+        <section class="stats-container">
+            <div class="stat-card">
+                <span class="stat-value" id="total-permits">--</span>
+                <span class="stat-label">Total Permits</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="top-type">--</span>
+                <span class="stat-label">Most Common Type</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value" id="unique-types">--</span>
+                <span class="stat-label">Permit Types</span>
+            </div>
+        </section>
+
+        <!-- Map Section -->
+        <section class="map-section">
+            <h2>Permit Locations</h2>
+            <div id="map"></div>
+        </section>
+
+        <!-- Charts Section -->
+        <section class="charts-section">
+            <div class="chart-container">
+                <h2>Permits Over Time</h2>
+                <canvas id="timeline-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h2>Permits by Type</h2>
+                <canvas id="type-chart"></canvas>
+            </div>
+        </section>
+
+        <!-- Data Table -->
+        <section class="table-section">
+            <h2>Permit Details</h2>
+            <div class="table-controls">
+                <input type="text" id="search-input" placeholder="Search permits...">
+                <select id="type-filter">
+                    <option value="">All Types</option>
+                </select>
+            </div>
+            <div class="table-wrapper">
+                <table id="permits-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="permit_num">Permit #</th>
+                            <th data-sort="type">Type</th>
+                            <th data-sort="address">Address</th>
+                            <th data-sort="issue_date">Issue Date</th>
+                            <th data-sort="status">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="permits-tbody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Loading Overlay -->
+        <div id="loading" class="loading-overlay">
+            <div class="loading-spinner"></div>
+            <p>Loading permit data...</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>Data source: <a href="https://data-ral.opendata.arcgis.com/" target="_blank">City of Raleigh Open Data</a></p>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

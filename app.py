@@ -41,13 +41,22 @@ def process_permits(geojson_data):
         geometry = feature.get("geometry", {})
         coords = geometry.get("coordinates", [None, None]) if geometry else [None, None]
 
-        # Extract permit info
-        permit_type = props.get("PERMIT_TYPE", "Unknown")
-        issue_date_ms = props.get("ISSUE_DATE")
-        status = props.get("STATUS", "Unknown")
-        address = props.get("SITE_ADDRESS", "No address")
-        permit_num = props.get("PERMIT_NUM", "N/A")
-        description = props.get("DESCRIPTION", "")
+        # Extract permit info (using actual field names from Raleigh's API)
+        permit_type = props.get("permittypemapped") or props.get("permittype") or "Unknown"
+        issue_date_ms = props.get("issueddate")
+        status = props.get("statuscurrentmapped") or props.get("statuscurrent") or "Unknown"
+        permit_num = props.get("permitnum") or "N/A"
+        description = props.get("proposedworkdescription") or props.get("description") or ""
+
+        # Build address from components
+        addr_parts = [
+            props.get("streetnum", ""),
+            props.get("streetdirectionprefix", ""),
+            props.get("streetname", ""),
+            props.get("streettype", ""),
+            props.get("streetdirectionsuffix", ""),
+        ]
+        address = " ".join(p for p in addr_parts if p).strip() or "No address"
 
         # Convert timestamp
         issue_date = None

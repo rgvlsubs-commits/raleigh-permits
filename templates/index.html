@@ -3,48 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raleigh Housing Permits Tracker</title>
-
-    <!-- Leaflet CSS -->
+    <title>Raleigh New Housing Construction Tracker</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
-
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
-        <h1>Raleigh Housing Permits Tracker</h1>
-        <p class="subtitle">Building permits issued in the past 180 days</p>
+        <h1>Raleigh New Housing Construction Tracker</h1>
+        <p class="subtitle">New residential building permits (2020-2025)</p>
     </header>
-
     <main>
-        <!-- Summary Stats -->
         <section class="stats-container">
-            <div class="stat-card">
-                <span class="stat-value" id="total-permits">--</span>
-                <span class="stat-label">Total Permits</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value" id="residential-count">--</span>
-                <span class="stat-label">Residential</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value" id="commercial-count">--</span>
-                <span class="stat-label">Non-Residential</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value" id="new-construction">--</span>
-                <span class="stat-label">New Construction</span>
-            </div>
-            <div class="stat-card">
-                <span class="stat-value" id="finaled-count">--</span>
-                <span class="stat-label">Finaled</span>
-            </div>
+            <div class="stat-card"><span class="stat-value" id="total-permits">--</span><span class="stat-label">Total Permits</span></div>
+            <div class="stat-card"><span class="stat-value" id="total-units">--</span><span class="stat-label">Total Units</span></div>
+            <div class="stat-card"><span class="stat-value" id="single-family-count">--</span><span class="stat-label">Single Family</span></div>
+            <div class="stat-card"><span class="stat-value" id="multifamily-count">--</span><span class="stat-label">Multifamily</span></div>
+            <div class="stat-card"><span class="stat-value" id="townhome-count">--</span><span class="stat-label">Townhome</span></div>
         </section>
-
-        <!-- Map Section -->
         <section class="map-section">
             <div class="map-header">
                 <h2>Permit Locations</h2>
@@ -61,126 +38,51 @@
                 </div>
             </div>
             <div class="map-legend">
-                <span class="legend-item"><span class="legend-dot residential"></span> Residential</span>
-                <span class="legend-item"><span class="legend-dot commercial"></span> Non-Residential</span>
+                <span class="legend-item"><span class="legend-dot single-family"></span> Single Family</span>
+                <span class="legend-item"><span class="legend-dot multifamily"></span> Multifamily</span>
+                <span class="legend-item"><span class="legend-dot townhome"></span> Townhome</span>
+                <span class="legend-item"><span class="legend-dot duplex"></span> Duplex</span>
+                <span class="legend-item"><span class="legend-dot adu"></span> ADU</span>
             </div>
             <div id="demographic-legend" class="demographic-legend hidden"></div>
             <div id="map"></div>
         </section>
-
-        <!-- Charts Row 1: Timeline -->
+        <section class="charts-section"><div class="chart-container full-width"><h2>Permits Over Time</h2><canvas id="timeline-chart"></canvas></div></section>
         <section class="charts-section">
-            <div class="chart-container full-width">
-                <h2>Permits Over Time</h2>
-                <canvas id="timeline-chart"></canvas>
-            </div>
+            <div class="chart-container"><h2>Housing Type Breakdown</h2><canvas id="housing-type-chart"></canvas></div>
+            <div class="chart-container"><h2>By Urban Ring</h2><canvas id="urban-ring-chart"></canvas></div>
         </section>
-
-        <!-- Charts Row 2: Breakdowns -->
+        <section class="charts-section"><div class="chart-container full-width"><h2>Yearly Trends by Housing Type</h2><canvas id="yearly-type-chart"></canvas></div></section>
         <section class="charts-section">
-            <div class="chart-container">
-                <h2>Residential vs Non-Residential</h2>
-                <canvas id="class-chart"></canvas>
-            </div>
-            <div class="chart-container">
-                <h2>Permit Status</h2>
-                <canvas id="status-chart"></canvas>
-            </div>
+            <div class="chart-container"><h2>Transit Score Distribution</h2><canvas id="transit-chart"></canvas></div>
+            <div class="chart-container"><h2>Permit Status</h2><canvas id="status-chart"></canvas></div>
         </section>
-
-        <!-- Charts Row 3: More Breakdowns -->
-        <section class="charts-section">
-            <div class="chart-container">
-                <h2>New vs Existing Construction</h2>
-                <canvas id="work-chart"></canvas>
-            </div>
-            <div class="chart-container">
-                <h2>Housing Type</h2>
-                <canvas id="housing-chart"></canvas>
-            </div>
-        </section>
-
-        <!-- Demographics by Zip Code -->
         <section class="table-section">
             <h2>Permit Activity by Zip Code with Demographics</h2>
             <p class="section-subtitle">Census ACS 2019-2023 5-Year Estimates</p>
             <div class="table-wrapper">
-                <table id="demographics-table">
-                    <thead>
-                        <tr>
-                            <th>Zip Code</th>
-                            <th>Area</th>
-                            <th>Permits</th>
-                            <th>Median Income</th>
-                            <th>Population</th>
-                            <th>% White</th>
-                            <th>% Black</th>
-                            <th>% Hispanic</th>
-                            <th>% Asian</th>
-                        </tr>
-                    </thead>
-                    <tbody id="demographics-tbody">
-                    </tbody>
-                </table>
+                <table id="demographics-table"><thead><tr><th>Zip Code</th><th>Area</th><th>Ring</th><th>Permits</th><th>Median Income</th><th>Population</th><th>% White</th><th>% Black</th><th>% Hispanic</th><th>% Asian</th></tr></thead><tbody id="demographics-tbody"></tbody></table>
             </div>
         </section>
-
-        <!-- Data Table -->
         <section class="table-section">
             <h2>Permit Details</h2>
             <div class="table-controls">
                 <input type="text" id="search-input" placeholder="Search permits...">
-                <select id="class-filter">
-                    <option value="">All Classes</option>
-                </select>
-                <select id="housing-filter">
-                    <option value="">All Housing Types</option>
-                </select>
-                <select id="status-filter">
-                    <option value="">All Statuses</option>
-                </select>
-                <select id="zip-filter">
-                    <option value="">All Zip Codes</option>
-                </select>
+                <select id="housing-type-filter"><option value="">All Housing Types</option><option value="Single Family">Single Family</option><option value="Multifamily">Multifamily</option><option value="Townhome">Townhome</option><option value="Duplex">Duplex</option><option value="ADU">ADU</option></select>
+                <select id="year-filter"><option value="">All Years</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option></select>
+                <select id="urban-ring-filter"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                <select id="zip-filter"><option value="">All Zip Codes</option></select>
             </div>
             <div class="table-wrapper">
-                <table id="permits-table">
-                    <thead>
-                        <tr>
-                            <th data-sort="permit_num">Permit #</th>
-                            <th data-sort="permit_class">Class</th>
-                            <th data-sort="housing_type">Housing Type</th>
-                            <th data-sort="address">Address</th>
-                            <th data-sort="zip_code">Zip</th>
-                            <th data-sort="issue_date">Issue Date</th>
-                            <th data-sort="status">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="permits-tbody">
-                    </tbody>
-                </table>
+                <table id="permits-table"><thead><tr><th>Permit #</th><th>Housing Type</th><th>Address</th><th>Zip</th><th>Ring</th><th>Transit</th><th>Issue Date</th><th>Status</th></tr></thead><tbody id="permits-tbody"></tbody></table>
             </div>
         </section>
-
-        <!-- Loading Overlay -->
-        <div id="loading" class="loading-overlay">
-            <div class="loading-spinner"></div>
-            <p>Loading permit data...</p>
-        </div>
+        <div id="loading" class="loading-overlay"><div class="loading-spinner"></div><p>Loading permit data (may take a minute on first load)...</p></div>
     </main>
-
-    <footer>
-        <p>Data sources: <a href="https://data-ral.opendata.arcgis.com/" target="_blank">City of Raleigh Open Data</a> | <a href="https://www.census.gov/programs-surveys/acs" target="_blank">US Census Bureau ACS</a></p>
-    </footer>
-
-    <!-- Leaflet JS -->
+    <footer><p>Data sources: <a href="https://data-ral.opendata.arcgis.com/" target="_blank">City of Raleigh Open Data</a> | <a href="https://www.census.gov/programs-surveys/acs" target="_blank">US Census Bureau ACS</a></p></footer>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

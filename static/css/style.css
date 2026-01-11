@@ -345,3 +345,28 @@ footer a {
         height: 350px;
     }
 }
+
+/* Housing type legend dots */
+.legend-dot.single-family {
+    background-color: #2563eb;
+}
+
+.legend-dot.multifamily {
+    background-color: #f59e0b;
+}
+
+.legend-dot.townhome {
+    background-color: #10b981;
+}
+
+.legend-dot.duplex {
+    background-color: #8b5cf6;
+}
+
+.legend-dot.adu {
+    background-color: #ef4444;
+}
+
+.map-legend {
+    flex-wrap: wrap;
+}

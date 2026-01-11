@@ -2,24 +2,41 @@
 let allPermits = [];
 let permitData = null;
 let demographicData = null;
+let analyticsData = null;
 let map = null;
 let markers = null;
 let demographicCircles = [];
 let timelineChart = null;
-let classChart = null;
+let housingTypeChart = null;
+let urbanRingChart = null;
+let yearlyTypeChart = null;
+let transitChart = null;
 let statusChart = null;
-let workChart = null;
-let housingChart = null;
 
-// Colors for categories
-const colors = {
-    residential: '#2563eb',
-    commercial: '#f59e0b',
-    new: '#10b981',
-    existing: '#6b7280',
-    issued: '#3b82f6',
-    finaled: '#22c55e',
-    housing: ['#2563eb', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4', '#f97316', '#84cc16']
+// Colors for housing types
+const housingTypeColors = {
+    'Single Family': '#2563eb',    // Blue
+    'Multifamily': '#f59e0b',      // Amber
+    'Townhome': '#10b981',         // Green
+    'Duplex': '#8b5cf6',           // Purple
+    'ADU': '#ef4444',              // Red
+    'Unknown': '#6b7280'           // Gray
+};
+
+// Colors for urban rings
+const urbanRingColors = {
+    'Downtown': '#dc2626',         // Red
+    'Near Downtown': '#f97316',    // Orange
+    'Inner Suburb': '#eab308',     // Yellow
+    'Outer Suburb': '#22c55e',     // Green
+    'Unknown': '#6b7280'           // Gray
+};
+
+// Transit score colors
+const transitScoreColors = {
+    high: '#22c55e',    // Green
+    medium: '#f59e0b',  // Amber
+    low: '#ef4444'      // Red
 };
 
 // Color scales for demographics
@@ -36,6 +53,12 @@ function getRaceColor(percentage) {
     const colors = ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8'];
     const index = Math.floor(normalized * (colors.length - 1));
     return colors[index];
+}
+
+function getTransitScoreColor(score) {
+    if (score >= 70) return transitScoreColors.high;
+    if (score >= 40) return transitScoreColors.medium;
+    return transitScoreColors.low;
 }
 
 // Initialize map
@@ -59,11 +82,11 @@ function populateMap(permits) {
 
     permits.forEach(permit => {
         if (permit.lat && permit.lng) {
-            const isResidential = permit.permit_class === 'Residential';
-            const color = isResidential ? colors.residential : colors.commercial;
+            const color = housingTypeColors[permit.housing_type] || housingTypeColors.Unknown;
+            const radius = Math.min(12, Math.max(6, 6 + (permit.units || 1) * 0.5));
 
             const marker = L.circleMarker([permit.lat, permit.lng], {
-                radius: 8,
+                radius: radius,
                 fillColor: color,
                 color: '#fff',
                 weight: 2,
@@ -71,12 +94,15 @@ function populateMap(permits) {
                 fillOpacity: 0.8
             });
 
+            const transitDisplay = permit.transit_score !== null ? permit.transit_score : 'N/A';
             marker.bindPopup(`
                 <strong>${permit.address}</strong><br>
                 <b>Permit:</b> ${permit.permit_num}<br>
-                <b>Class:</b> ${permit.permit_class}<br>
                 <b>Type:</b> ${permit.housing_type}<br>
+                <b>Units:</b> ${permit.units || 1}<br>
                 <b>Zip:</b> ${permit.zip_code || 'N/A'}<br>
+                <b>Ring:</b> ${permit.urban_ring || 'N/A'}<br>
+                <b>Transit Score:</b> ${transitDisplay}<br>
                 <b>Status:</b> ${permit.status}<br>
                 <b>Issued:</b> ${permit.issue_date}
             `);
@@ -88,7 +114,6 @@ function populateMap(permits) {
 
 // Update demographic overlay on map
 function updateDemographicOverlay(overlayType) {
-    // Remove existing circles
     demographicCircles.forEach(circle => map.removeLayer(circle));
     demographicCircles = [];
 
@@ -101,7 +126,6 @@ function updateDemographicOverlay(overlayType) {
 
     legend.classList.remove('hidden');
 
-    // Update legend
     if (overlayType === 'income') {
         legend.innerHTML = `
             <span>$30k</span>
@@ -119,7 +143,6 @@ function updateDemographicOverlay(overlayType) {
         `;
     }
 
-    // Add demographic circles
     demographicData.zip_data.forEach(zip => {
         if (!zip.center || !zip.center[0]) return;
 
@@ -144,6 +167,7 @@ function updateDemographicOverlay(overlayType) {
 
         circle.bindPopup(`
             <strong>${zip.zip_code} - ${zip.name}</strong><br>
+            <b>Ring:</b> ${zip.urban_ring || 'N/A'}<br>
             <b>Permits:</b> ${zip.permit_count}<br>
             <b>Median Income:</b> $${zip.median_income.toLocaleString()}<br>
             <b>Population:</b> ${zip.population.toLocaleString()}<br>
@@ -168,7 +192,7 @@ function createTimelineChart(data) {
 
     const formattedLabels = data.labels.map(label => {
         const [year, week] = label.split('-');
-        return `W${week}`;
+        return `${year} W${week}`;
     });
 
     timelineChart = new Chart(ctx, {
@@ -182,8 +206,81 @@ function createTimelineChart(data) {
                 backgroundColor: 'rgba(30, 58, 95, 0.1)',
                 fill: true,
                 tension: 0.3,
-                pointRadius: 4,
-                pointHoverRadius: 6
+                pointRadius: 2,
+                pointHoverRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true },
+                x: {
+                    ticks: { maxTicksLimit: 20 }
+                }
+            }
+        }
+    });
+}
+
+// Create housing type chart
+function createHousingTypeChart(counts) {
+    const ctx = document.getElementById('housing-type-chart').getContext('2d');
+
+    if (housingTypeChart) {
+        housingTypeChart.destroy();
+    }
+
+    const labels = Object.keys(counts);
+    const values = Object.values(counts);
+    const colors = labels.map(l => housingTypeColors[l] || housingTypeColors.Unknown);
+
+    housingTypeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+}
+
+// Create urban ring chart
+function createUrbanRingChart(counts) {
+    const ctx = document.getElementById('urban-ring-chart').getContext('2d');
+
+    if (urbanRingChart) {
+        urbanRingChart.destroy();
+    }
+
+    const orderedRings = ['Downtown', 'Near Downtown', 'Inner Suburb', 'Outer Suburb', 'Unknown'];
+    const labels = orderedRings.filter(r => counts[r]);
+    const values = labels.map(l => counts[l]);
+    const colors = labels.map(l => urbanRingColors[l] || urbanRingColors.Unknown);
+
+    urbanRingChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Permits',
+                data: values,
+                backgroundColor: colors,
+                borderRadius: 4
             }]
         },
         options: {
@@ -199,27 +296,60 @@ function createTimelineChart(data) {
     });
 }
 
-// Create pie/doughnut chart for Residential vs Non-Residential
-function createClassChart(classCounts) {
-    const ctx = document.getElementById('class-chart').getContext('2d');
+// Create yearly trends by type chart
+function createYearlyTypeChart(yearlyByType) {
+    const ctx = document.getElementById('yearly-type-chart').getContext('2d');
 
-    if (classChart) {
-        classChart.destroy();
+    if (yearlyTypeChart) {
+        yearlyTypeChart.destroy();
     }
 
-    const labels = Object.keys(classCounts);
-    const values = Object.values(classCounts);
-    const chartColors = labels.map(l =>
-        l === 'Residential' ? colors.residential : colors.commercial
-    );
+    const years = Object.keys(yearlyByType).sort();
+    const housingTypes = ['Single Family', 'Multifamily', 'Townhome', 'Duplex', 'ADU'];
 
-    classChart = new Chart(ctx, {
+    const datasets = housingTypes.map(type => ({
+        label: type,
+        data: years.map(year => yearlyByType[year]?.[type] || 0),
+        backgroundColor: housingTypeColors[type],
+        borderColor: housingTypeColors[type],
+        borderWidth: 2
+    }));
+
+    yearlyTypeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: years,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' }
+            },
+            scales: {
+                x: { stacked: true },
+                y: { stacked: true, beginAtZero: true }
+            }
+        }
+    });
+}
+
+// Create transit score chart
+function createTransitChart(transitDist) {
+    const ctx = document.getElementById('transit-chart').getContext('2d');
+
+    if (transitChart) {
+        transitChart.destroy();
+    }
+
+    transitChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: labels,
+            labels: ['High (70+)', 'Medium (40-69)', 'Low (<40)'],
             datasets: [{
-                data: values,
-                backgroundColor: chartColors,
+                data: [transitDist.high, transitDist.medium, transitDist.low],
+                backgroundColor: [transitScoreColors.high, transitScoreColors.medium, transitScoreColors.low],
                 borderWidth: 2,
                 borderColor: '#fff'
             }]
@@ -228,7 +358,11 @@ function createClassChart(classCounts) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom' }
+                legend: { position: 'bottom' },
+                title: {
+                    display: true,
+                    text: `Average Score: ${transitDist.average}`
+                }
             }
         }
     });
@@ -244,8 +378,8 @@ function createStatusChart(statusCounts) {
 
     const labels = Object.keys(statusCounts);
     const values = Object.values(statusCounts);
-    const chartColors = labels.map(l =>
-        l.toLowerCase().includes('finaled') ? colors.finaled : colors.issued
+    const colors = labels.map(l =>
+        l.toLowerCase().includes('finaled') ? '#22c55e' : '#3b82f6'
     );
 
     statusChart = new Chart(ctx, {
@@ -254,7 +388,7 @@ function createStatusChart(statusCounts) {
             labels: labels,
             datasets: [{
                 data: values,
-                backgroundColor: chartColors,
+                backgroundColor: colors,
                 borderWidth: 2,
                 borderColor: '#fff'
             }]
@@ -264,81 +398,6 @@ function createStatusChart(statusCounts) {
             maintainAspectRatio: false,
             plugins: {
                 legend: { position: 'bottom' }
-            }
-        }
-    });
-}
-
-// Create work type chart (New vs Existing)
-function createWorkChart(workCounts) {
-    const ctx = document.getElementById('work-chart').getContext('2d');
-
-    if (workChart) {
-        workChart.destroy();
-    }
-
-    const labels = Object.keys(workCounts);
-    const values = Object.values(workCounts);
-    const chartColors = labels.map(l =>
-        l === 'New' ? colors.new : colors.existing
-    );
-
-    workChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: values,
-                backgroundColor: chartColors,
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-}
-
-// Create housing type chart
-function createHousingChart(housingCounts) {
-    const ctx = document.getElementById('housing-chart').getContext('2d');
-
-    if (housingChart) {
-        housingChart.destroy();
-    }
-
-    const sorted = Object.entries(housingCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 8);
-
-    const labels = sorted.map(s => s[0]);
-    const values = sorted.map(s => s[1]);
-
-    housingChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Count',
-                data: values,
-                backgroundColor: colors.housing,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: 'y',
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                x: { beginAtZero: true }
             }
         }
     });
@@ -354,6 +413,7 @@ function populateDemographicsTable(data) {
         row.innerHTML = `
             <td>${zip.zip_code}</td>
             <td>${zip.name}</td>
+            <td>${zip.urban_ring || 'N/A'}</td>
             <td><strong>${zip.permit_count}</strong></td>
             <td>$${zip.median_income.toLocaleString()}</td>
             <td>${zip.population.toLocaleString()}</td>
@@ -372,13 +432,15 @@ function populateTable(permits) {
     tbody.innerHTML = '';
 
     permits.slice(0, 500).forEach(permit => {
+        const transitDisplay = permit.transit_score !== null ? permit.transit_score : 'N/A';
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${permit.permit_num}</td>
-            <td>${permit.permit_class}</td>
             <td>${permit.housing_type}</td>
             <td>${permit.address}</td>
             <td>${permit.zip_code || 'N/A'}</td>
+            <td>${permit.urban_ring || 'N/A'}</td>
+            <td>${transitDisplay}</td>
             <td>${permit.issue_date}</td>
             <td>${permit.status}</td>
         `;
@@ -386,45 +448,14 @@ function populateTable(permits) {
     });
 }
 
-// Populate filter dropdowns
-function populateFilters(data) {
-    // Class filter
-    const classSelect = document.getElementById('class-filter');
-    classSelect.innerHTML = '<option value="">All Classes</option>';
-    Object.keys(data.class_counts).forEach(cls => {
-        const option = document.createElement('option');
-        option.value = cls;
-        option.textContent = `${cls} (${data.class_counts[cls]})`;
-        classSelect.appendChild(option);
-    });
-
-    // Housing filter
-    const housingSelect = document.getElementById('housing-filter');
-    housingSelect.innerHTML = '<option value="">All Housing Types</option>';
-    Object.keys(data.housing_counts).forEach(type => {
-        const option = document.createElement('option');
-        option.value = type;
-        option.textContent = `${type} (${data.housing_counts[type]})`;
-        housingSelect.appendChild(option);
-    });
-
-    // Status filter
-    const statusSelect = document.getElementById('status-filter');
-    statusSelect.innerHTML = '<option value="">All Statuses</option>';
-    Object.keys(data.status_counts).forEach(status => {
-        const option = document.createElement('option');
-        option.value = status;
-        option.textContent = `${status} (${data.status_counts[status]})`;
-        statusSelect.appendChild(option);
-    });
-
-    // Zip filter
+// Populate zip filter
+function populateZipFilter(zipCounts) {
     const zipSelect = document.getElementById('zip-filter');
     zipSelect.innerHTML = '<option value="">All Zip Codes</option>';
-    Object.keys(data.zip_counts).forEach(zip => {
+    Object.entries(zipCounts).sort((a, b) => b[1] - a[1]).forEach(([zip, count]) => {
         const option = document.createElement('option');
         option.value = zip;
-        option.textContent = `${zip} (${data.zip_counts[zip]})`;
+        option.textContent = `${zip} (${count})`;
         zipSelect.appendChild(option);
     });
 }
@@ -432,39 +463,35 @@ function populateFilters(data) {
 // Update stats
 function updateStats(data) {
     document.getElementById('total-permits').textContent = data.total_count.toLocaleString();
+    document.getElementById('total-units').textContent = (data.total_units || 0).toLocaleString();
 
-    const residential = data.class_counts['Residential'] || 0;
-    const commercial = data.class_counts['Non-Residential'] || 0;
-    document.getElementById('residential-count').textContent = residential.toLocaleString();
-    document.getElementById('commercial-count').textContent = commercial.toLocaleString();
-
-    const newConstruction = data.work_counts['New'] || 0;
-    document.getElementById('new-construction').textContent = newConstruction.toLocaleString();
-
-    const finaled = data.status_counts['Permit Finaled'] || 0;
-    document.getElementById('finaled-count').textContent = finaled.toLocaleString();
+    const ht = data.housing_type_counts || {};
+    document.getElementById('single-family-count').textContent = (ht['Single Family'] || 0).toLocaleString();
+    document.getElementById('multifamily-count').textContent = (ht['Multifamily'] || 0).toLocaleString();
+    document.getElementById('townhome-count').textContent = (ht['Townhome'] || 0).toLocaleString();
 }
 
 // Filter permits
 function filterPermits() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
-    const classFilter = document.getElementById('class-filter').value;
-    const housingFilter = document.getElementById('housing-filter').value;
-    const statusFilter = document.getElementById('status-filter').value;
+    const housingTypeFilter = document.getElementById('housing-type-filter').value;
+    const yearFilter = document.getElementById('year-filter').value;
+    const urbanRingFilter = document.getElementById('urban-ring-filter').value;
     const zipFilter = document.getElementById('zip-filter').value;
 
     let filtered = allPermits;
 
-    if (classFilter) {
-        filtered = filtered.filter(p => p.permit_class === classFilter);
+    if (housingTypeFilter) {
+        filtered = filtered.filter(p => p.housing_type === housingTypeFilter);
     }
 
-    if (housingFilter) {
-        filtered = filtered.filter(p => p.housing_type === housingFilter);
+    if (yearFilter) {
+        const year = parseInt(yearFilter);
+        filtered = filtered.filter(p => p.issue_year === year);
     }
 
-    if (statusFilter) {
-        filtered = filtered.filter(p => p.status === statusFilter);
+    if (urbanRingFilter) {
+        filtered = filtered.filter(p => p.urban_ring === urbanRingFilter);
     }
 
     if (zipFilter) {
@@ -475,7 +502,6 @@ function filterPermits() {
         filtered = filtered.filter(p =>
             p.address.toLowerCase().includes(searchTerm) ||
             p.permit_num.toLowerCase().includes(searchTerm) ||
-            p.housing_type.toLowerCase().includes(searchTerm) ||
             (p.zip_code && p.zip_code.includes(searchTerm))
         );
     }
@@ -484,10 +510,17 @@ function filterPermits() {
     populateMap(filtered);
 }
 
-// Load permit data
-async function loadPermitData() {
-    const response = await fetch('/api/permits');
-    if (!response.ok) throw new Error('Failed to fetch permits');
+// Load residential permit data (new endpoint)
+async function loadResidentialData() {
+    const response = await fetch('/api/permits/residential');
+    if (!response.ok) throw new Error('Failed to fetch residential permits');
+    return response.json();
+}
+
+// Load analytics data
+async function loadAnalyticsData() {
+    const response = await fetch('/api/analytics');
+    if (!response.ok) throw new Error('Failed to fetch analytics');
     return response.json();
 }
 
@@ -501,26 +534,29 @@ async function loadDemographicData() {
 // Load all data
 async function loadData() {
     try {
-        // Load both datasets in parallel
-        const [permits, demographics] = await Promise.all([
-            loadPermitData(),
+        // Load all datasets in parallel
+        const [permits, analytics, demographics] = await Promise.all([
+            loadResidentialData(),
+            loadAnalyticsData(),
             loadDemographicData()
         ]);
 
         permitData = permits;
+        analyticsData = analytics;
         demographicData = demographics;
         allPermits = permits.permits;
 
         // Update UI with permit data
         updateStats(permits);
         populateMap(permits.permits);
-        createTimelineChart(permits.timeline);
-        createClassChart(permits.class_counts);
-        createStatusChart(permits.status_counts);
-        createWorkChart(permits.work_counts);
-        createHousingChart(permits.housing_counts);
+        createTimelineChart(analytics.timeline || { labels: [], values: [] });
+        createHousingTypeChart(analytics.housing_type_counts);
+        createUrbanRingChart(analytics.urban_ring_counts);
+        createYearlyTypeChart(analytics.yearly_by_type);
+        createTransitChart(analytics.transit_distribution);
+        createStatusChart(analytics.status_counts || {});
         populateTable(permits.permits);
-        populateFilters(permits);
+        populateZipFilter(permits.unfiltered_totals?.zip_counts || permits.zip_counts || {});
 
         // Update demographics table
         populateDemographicsTable(demographics);
@@ -531,7 +567,8 @@ async function loadData() {
     } catch (error) {
         console.error('Error loading data:', error);
         document.getElementById('loading').innerHTML = `
-            <p style="color: #ef4444;">Error loading data. Please refresh the page.</p>
+            <p style="color: #ef4444;">Error loading data: ${error.message}</p>
+            <p>Please refresh the page to try again.</p>
         `;
     }
 }
@@ -542,9 +579,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set up filter event listeners
     document.getElementById('search-input').addEventListener('input', filterPermits);
-    document.getElementById('class-filter').addEventListener('change', filterPermits);
-    document.getElementById('housing-filter').addEventListener('change', filterPermits);
-    document.getElementById('status-filter').addEventListener('change', filterPermits);
+    document.getElementById('housing-type-filter').addEventListener('change', filterPermits);
+    document.getElementById('year-filter').addEventListener('change', filterPermits);
+    document.getElementById('urban-ring-filter').addEventListener('change', filterPermits);
     document.getElementById('zip-filter').addEventListener('change', filterPermits);
 
     // Demographic overlay listener

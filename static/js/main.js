@@ -3,6 +3,9 @@ let allPermits = [];
 let permitData = null;
 let demographicData = null;
 let analyticsData = null;
+let currentView = 'permits';  // 'permits' or 'units'
+let housingTypeCounts = {};
+let unitsByType = {};
 let map = null;
 let markers = null;
 let demographicCircles = [];
@@ -460,15 +463,44 @@ function populateZipFilter(zipCounts) {
     });
 }
 
-// Update stats
+// Update stats based on current view mode
 function updateStats(data) {
     document.getElementById('total-permits').textContent = data.total_count.toLocaleString();
     document.getElementById('total-units').textContent = (data.total_units || 0).toLocaleString();
 
-    const ht = data.housing_type_counts || {};
-    document.getElementById('single-family-count').textContent = (ht['Single Family'] || 0).toLocaleString();
-    document.getElementById('multifamily-count').textContent = (ht['Multifamily'] || 0).toLocaleString();
-    document.getElementById('townhome-count').textContent = (ht['Townhome'] || 0).toLocaleString();
+    // Use permits or units based on current view
+    const counts = currentView === 'units' ? unitsByType : housingTypeCounts;
+    document.getElementById('single-family-count').textContent = (counts['Single Family'] || 0).toLocaleString();
+    document.getElementById('multifamily-count').textContent = (counts['Multifamily'] || 0).toLocaleString();
+    document.getElementById('townhome-count').textContent = (counts['Townhome'] || 0).toLocaleString();
+}
+
+// Switch view mode between permits and units
+function switchViewMode(mode) {
+    currentView = mode;
+    
+    // Update toggle button states
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === mode);
+    });
+    
+    // Update stats cards
+    const counts = currentView === 'units' ? unitsByType : housingTypeCounts;
+    document.getElementById('single-family-count').textContent = (counts['Single Family'] || 0).toLocaleString();
+    document.getElementById('multifamily-count').textContent = (counts['Multifamily'] || 0).toLocaleString();
+    document.getElementById('townhome-count').textContent = (counts['Townhome'] || 0).toLocaleString();
+    
+    // Update housing type chart
+    createHousingTypeChart(counts);
+    
+    // Update urban ring chart title
+    if (urbanRingChart) {
+        urbanRingChart.options.plugins.title = {
+            display: true,
+            text: currentView === 'units' ? 'Units by Urban Ring' : 'Permits by Urban Ring'
+        };
+        urbanRingChart.update();
+    }
 }
 
 // Filter permits
@@ -545,6 +577,10 @@ async function loadData() {
         analyticsData = analytics;
         demographicData = demographics;
         allPermits = permits.permits;
+        
+        // Store both permit counts and unit counts
+        housingTypeCounts = analytics.housing_type_counts || {};
+        unitsByType = analytics.units_by_type || {};
 
         // Update UI with permit data
         updateStats(permits);
@@ -587,6 +623,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Demographic overlay listener
     document.getElementById('demographic-overlay').addEventListener('change', (e) => {
         updateDemographicOverlay(e.target.value);
+    });
+
+    // View toggle listener
+    document.querySelectorAll('.toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchViewMode(btn.dataset.view);
+        });
     });
 
     // Load data

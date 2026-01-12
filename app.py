@@ -101,21 +101,6 @@ URBAN_RING_MAP = {
     "27613": "Outer Suburb",
     "27614": "Outer Suburb",
     "27617": "Outer Suburb",
-
-    # Neighboring municipalities
-    "27502": "Outer Suburb",   # Apex
-    "27511": "Inner Suburb",   # Cary West
-    "27513": "Inner Suburb",   # Cary Central
-    "27518": "Outer Suburb",   # Cary South
-    "27519": "Outer Suburb",   # Cary Preston
-    "27526": "Outer Suburb",   # Fuquay-Varina
-    "27529": "Inner Suburb",   # Garner
-    "27539": "Outer Suburb",   # Apex South
-    "27540": "Outer Suburb",   # Holly Springs
-    "27560": "Inner Suburb",   # Morrisville
-    "27587": "Outer Suburb",   # Wake Forest
-    "27591": "Outer Suburb",   # Wendell
-    "27597": "Outer Suburb",   # Zebulon
 }
 
 
@@ -127,10 +112,9 @@ def get_urban_ring(zip_code: str) -> str:
 
 
 # =============================================================================
-# ZIP CODE CENTERS (extended with neighboring municipalities)
+# ZIP CODE CENTERS (City of Raleigh only)
 # =============================================================================
 ZIP_CODE_CENTERS = {
-    # Raleigh core
     "27601": (35.7796, -78.6382, 0.02),
     "27603": (35.7350, -78.6650, 0.04),
     "27604": (35.8050, -78.5800, 0.04),
@@ -146,20 +130,6 @@ ZIP_CODE_CENTERS = {
     "27615": (35.8700, -78.6200, 0.04),
     "27616": (35.8650, -78.5350, 0.05),
     "27617": (35.9000, -78.8000, 0.04),
-    # Neighboring municipalities
-    "27502": (35.7310, -78.8500, 0.05),  # Apex
-    "27511": (35.7920, -78.7810, 0.04),  # Cary West
-    "27513": (35.7870, -78.7970, 0.04),  # Cary Central
-    "27518": (35.7340, -78.7720, 0.04),  # Cary South
-    "27519": (35.8120, -78.8210, 0.05),  # Cary Preston
-    "27526": (35.5840, -78.7990, 0.05),  # Fuquay-Varina
-    "27529": (35.7110, -78.6140, 0.05),  # Garner
-    "27539": (35.6890, -78.8540, 0.05),  # Apex South
-    "27540": (35.6510, -78.8330, 0.05),  # Holly Springs
-    "27560": (35.8230, -78.8250, 0.04),  # Morrisville
-    "27587": (35.9800, -78.5100, 0.05),  # Wake Forest
-    "27591": (35.7810, -78.3690, 0.04),  # Wendell
-    "27597": (35.8230, -78.3150, 0.04),  # Zebulon
 }
 
 

@@ -406,20 +406,41 @@ This captures actual apartment building construction rather than individual unit
 
 ## VALIDATION CHECKLIST
 
-- [x] Classification logic reviewed (Claude)
-- [x] Multifamily drop explanation assessed (Claude + external sources)
-- [x] Alternative data sources identified (Claude)
-- [x] Methodology improvements suggested (Claude)
-- [ ] GPT-4 validation completed
-- [ ] Gemini validation completed
-- [ ] Consensus on findings reached
+- [x] Classification logic reviewed (Claude, GPT-4, Gemini)
+- [x] Multifamily drop explanation assessed (all three LLMs + external sources)
+- [x] Alternative data sources identified (all three LLMs)
+- [x] Methodology improvements suggested (all three LLMs)
+- [x] GPT-4 validation completed
+- [x] Gemini validation completed
+- [x] Consensus on findings reached
 
 ---
 
-## HOW TO COMPLETE CROSS-LLM VALIDATION
+## CROSS-LLM CONSENSUS SUMMARY
 
-1. Copy the "PROMPT FOR EXTERNAL VALIDATION" section above (lines 7-55)
-2. Paste into ChatGPT (GPT-4) and Gemini
-3. Copy their responses back into this document
-4. Compare findings across all three LLMs
-5. Document any disagreements or unique insights
+### Areas of Strong Agreement (All 3 LLMs)
+
+1. **Classification Fix**: Use `units >= 5` for true multifamily buildings ✅ *IMPLEMENTED*
+2. **Root Cause**: The 2022 "collapse" is primarily a **data classification artifact**, not purely market-driven
+3. **1-Unit R2 Permits**: These are condo unit-level permits, not new apartment buildings
+4. **Tiered Approach**: Separate "Large Multifamily" (5+), "Small Multifamily" (3-4), and exclude 1-unit R2 ✅ *IMPLEMENTED*
+5. **External Validation**: Census BPS, CoStar/Yardi, FRED data recommended
+
+### Unique Insights by LLM
+
+| LLM | Unique Contribution |
+|-----|---------------------|
+| GPT-4 | Ask Raleigh directly about permitting practice change; use permit valuation as signal |
+| Gemini | Check for missing "BLDCM" commercial permits; Mixed-Use buildings may be missed; FRED MSA data |
+| Claude | Confirmed via Axios/Apartment List that real (but smaller) slowdown exists |
+
+### Validated Conclusion
+
+> "After correcting for a change in Raleigh's multifamily permitting practices, the data suggest a modest slowdown in large multifamily project authorizations beginning in late 2022, consistent with national financing conditions—but not a collapse of multifamily construction." — GPT-4
+
+### Remaining Gaps (Future Work)
+
+1. Query commercial permits (BLDCM) for large apartments
+2. Check mixed-use buildings with residential components
+3. Cross-reference with Census BPS / FRED for Raleigh-Cary MSA
+4. Consider permit valuation to distinguish shell vs unit permits

@@ -206,17 +206,36 @@ Multifamily = (occupancyclass contains 'R2' AND units >= 5)
 - No cost/valuation analysis
 - Geographic analysis uses zip codes vs actual neighborhoods
 
-### GPT-4 Validation
-*Pending - see AUDIT_PROMPT.md for instructions*
+### GPT-4 Validation (Completed)
 
-### Gemini Validation
-*Pending - see AUDIT_PROMPT.md for instructions*
+**Key quote:** "The observed 2022 'multifamily collapse' is **primarily a classification artifact**, with a **secondary real market slowdown layered underneath**."
 
-### Consensus Summary
-- **CONFIRMED**: Multifamily slowdown is real (external sources agree)
-- **NUANCED**: The 86% drop may be inflated by data classification changes
-- **CONTEXT**: National trend shows 16% drop, local data may show more extreme due to classification
-- **ACTION**: Implement `units >= 5` filter for accurate multifamily tracking
+**Recommendations:**
+- Define three tiers: Large MF (5+), Small MF (3-4), MF Units (1-unit R2, exclude)
+- Use permit valuation to distinguish shell vs unit permits
+- Ask Raleigh directly about permitting practice changes
+
+### Gemini Validation (Completed)
+
+**Key insight:** Called this a "data ghost"—where administrative reporting changes mimic a market crash.
+
+**Recommendations:**
+- Check for missing BLDCM (commercial) permits for large apartments
+- Mixed-use buildings may be missed by residential-only filter
+- Cross-reference with FRED MSA data and Wake County tax records
+
+### Consensus Summary (All 3 LLMs Agree)
+
+| Finding | Status |
+|---------|--------|
+| Use `units >= 5` for true multifamily | ✅ IMPLEMENTED |
+| Add "Small Multifamily" (3-4 units) category | ✅ IMPLEMENTED |
+| 2022 drop is primarily a data artifact | ✅ CONFIRMED |
+| Real (but smaller) slowdown exists | ✅ CONFIRMED |
+| 1-unit R2 permits are condo unit permits, not buildings | ✅ CONFIRMED |
+
+**Validated conclusion:**
+> "After correcting for a change in Raleigh's multifamily permitting practices, the data suggest a modest slowdown in large multifamily project authorizations beginning in late 2022, consistent with national financing conditions—but not a collapse of multifamily construction."
 
 ---
 
@@ -230,4 +249,5 @@ Multifamily = (occupancyclass contains 'R2' AND units >= 5)
 | 2026-01-11 | External | Multifamily slowdown confirmed | Axios, Apartment List confirm national/local trend |
 | 2026-01-11 | Claude | Cross-LLM validation completed | Confirmed findings, recommended units >= 5 filter |
 | 2026-01-12 | Claude | Implemented units >= 5 for Multifamily | Added "Small Multifamily" (3-4 units) category |
+| 2026-01-12 | GPT-4, Gemini | Cross-LLM validation completed | All 3 LLMs agree on findings and fixes |
 

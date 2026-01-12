@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Raleigh New Housing Construction Tracker</title>
+    <title>The Municipal Chronicle of Domestic Construction</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
@@ -11,8 +11,8 @@
 </head>
 <body>
     <header>
-        <h1>Raleigh New Housing Construction Tracker</h1>
-        <p class="subtitle">New residential building permits (2020-2025)</p>
+        <h1>The Municipal Chronicle of Domestic Construction</h1>
+        <p class="subtitle">A Visual Record of Residential Building Permits in the City of Raleigh, 2020–Present</p>
     </header>
     <main>
         <div class="view-toggle-container">
@@ -20,6 +20,12 @@
             <div class="view-toggle">
                 <button class="toggle-btn active" data-view="permits">Permits</button>
                 <button class="toggle-btn" data-view="units">Units</button>
+            </div>
+            <span class="view-toggle-label">Status:</span>
+            <div class="view-toggle">
+                <button class="toggle-btn status-btn active" data-status="all">All</button>
+                <button class="toggle-btn status-btn" data-status="approved">Approved</button>
+                <button class="toggle-btn status-btn" data-status="completed">Completed</button>
             </div>
         </div>
         <section class="stats-container">

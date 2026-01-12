@@ -434,7 +434,8 @@ def classify_housing_type(props: dict) -> str:
     units = props.get("housingunitstotal") or 1
 
     # Priority 1: ADU (explicit field)
-    if adu_type and adu_type.lower() not in ("null", "not accessory dwelling", ""):
+    # Note: "NOT Accessory Dwelli" is a truncated version in the data
+    if adu_type and adu_type.lower() not in ("null", "not accessory dwelling", "not accessory dwelli", ""):
         return "ADU"
 
     # Priority 2: Multifamily (R2 occupancy or 3+ units)
@@ -757,6 +758,7 @@ def get_residential_permits():
     filtered_housing_counts = {}
     filtered_ring_counts = {}
     filtered_yearly_counts = {}
+    filtered_total_units = 0
 
     for p in permits:
         ht = p.get("housing_type", "Unknown")
@@ -769,15 +771,19 @@ def get_residential_permits():
         if year:
             filtered_yearly_counts[year] = filtered_yearly_counts.get(year, 0) + 1
 
+        filtered_total_units += p.get("units", 1)
+
     return jsonify({
         "permits": permits,
         "total_count": len(permits),
+        "total_units": filtered_total_units,
         "housing_type_counts": filtered_housing_counts,
         "urban_ring_counts": filtered_ring_counts,
         "yearly_counts": dict(sorted(filtered_yearly_counts.items())),
         "zip_counts": processed["zip_counts"],
         "unfiltered_totals": {
             "total_count": processed["total_count"],
+            "total_units": processed["total_units"],
             "housing_type_counts": processed["housing_type_counts"],
             "urban_ring_counts": processed["urban_ring_counts"],
             "yearly_counts": processed["yearly_counts"],

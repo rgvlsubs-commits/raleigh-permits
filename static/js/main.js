@@ -4,6 +4,7 @@ let permitData = null;
 let demographicData = null;
 let analyticsData = null;
 let currentView = 'permits';  // 'permits' or 'units'
+let currentStatusFilter = 'all';  // 'all', 'approved', 'completed'
 let housingTypeCounts = {};
 let unitsByType = {};
 let map = null;
@@ -16,44 +17,61 @@ let yearlyTypeChart = null;
 let transitChart = null;
 let statusChart = null;
 
-// Colors for housing types
+// Wes Anderson Color Palette
+const wesAnderson = {
+    cream: '#FAF3E0',
+    dustyRose: '#D4A59A',
+    salmon: '#E8998D',
+    mustard: '#E9B44C',
+    ochre: '#D4A373',
+    sage: '#9DC183',
+    powderBlue: '#8ECAE6',
+    burgundy: '#722F37',
+    terracotta: '#C9705F',
+    lavender: '#C3B1E1',
+    peach: '#FFDAB9'
+};
+
+// Colors for housing types - Wes Anderson palette
 const housingTypeColors = {
-    'Single Family': '#2563eb',    // Blue
-    'Multifamily': '#f59e0b',      // Amber
-    'Townhome': '#10b981',         // Green
-    'Duplex': '#8b5cf6',           // Purple
-    'ADU': '#ef4444',              // Red
-    'Unknown': '#6b7280'           // Gray
+    'Single Family': wesAnderson.powderBlue,
+    'Multifamily': wesAnderson.mustard,
+    'Townhome': wesAnderson.sage,
+    'Duplex': wesAnderson.lavender,
+    'ADU': wesAnderson.salmon,
+    'Unknown': wesAnderson.ochre
 };
 
-// Colors for urban rings
+// Colors for urban rings - Wes Anderson palette
 const urbanRingColors = {
-    'Downtown': '#dc2626',         // Red
-    'Near Downtown': '#f97316',    // Orange
-    'Inner Suburb': '#eab308',     // Yellow
-    'Outer Suburb': '#22c55e',     // Green
-    'Unknown': '#6b7280'           // Gray
+    'Downtown': wesAnderson.burgundy,
+    'Near Downtown': wesAnderson.terracotta,
+    'Inner Suburb': wesAnderson.mustard,
+    'Outer Suburb': wesAnderson.sage,
+    'Unknown': wesAnderson.ochre
 };
 
-// Transit score colors
+// Transit score colors - Wes Anderson palette
 const transitScoreColors = {
-    high: '#22c55e',    // Green
-    medium: '#f59e0b',  // Amber
-    low: '#ef4444'      // Red
+    high: wesAnderson.sage,
+    medium: wesAnderson.mustard,
+    low: wesAnderson.terracotta
 };
 
-// Color scales for demographics
+// Color scales for demographics - Wes Anderson palette
 function getIncomeColor(income) {
     const min = 30000, max = 150000;
     const normalized = Math.min(1, Math.max(0, (income - min) / (max - min)));
-    const colors = ['#fee2e2', '#fecaca', '#fca5a5', '#f87171', '#ef4444', '#dc2626', '#b91c1c'];
+    // Cream -> Peach -> Salmon -> Dusty Rose -> Terracotta
+    const colors = [wesAnderson.cream, wesAnderson.peach, wesAnderson.salmon, wesAnderson.dustyRose, wesAnderson.terracotta];
     const index = Math.floor(normalized * (colors.length - 1));
     return colors[index];
 }
 
 function getRaceColor(percentage) {
     const normalized = Math.min(1, Math.max(0, percentage / 100));
-    const colors = ['#dbeafe', '#bfdbfe', '#93c5fd', '#60a5fa', '#3b82f6', '#2563eb', '#1d4ed8'];
+    // Cream -> Powder Blue -> Lavender -> Sage
+    const colors = [wesAnderson.cream, wesAnderson.powderBlue, wesAnderson.lavender, wesAnderson.sage];
     const index = Math.floor(normalized * (colors.length - 1));
     return colors[index];
 }
@@ -62,6 +80,25 @@ function getTransitScoreColor(score) {
     if (score >= 70) return transitScoreColors.high;
     if (score >= 40) return transitScoreColors.medium;
     return transitScoreColors.low;
+}
+
+// Filter permits by status
+function filterByStatus(permits, statusFilter) {
+    if (statusFilter === 'all') {
+        return permits;
+    }
+
+    return permits.filter(p => {
+        const status = (p.status || '').toLowerCase();
+        if (statusFilter === 'approved') {
+            // Approved = Issued or Finaled
+            return status.includes('issued') || status.includes('finaled');
+        } else if (statusFilter === 'completed') {
+            // Completed = Finaled only
+            return status.includes('finaled');
+        }
+        return true;
+    });
 }
 
 // Initialize map
@@ -91,10 +128,10 @@ function populateMap(permits) {
             const marker = L.circleMarker([permit.lat, permit.lng], {
                 radius: radius,
                 fillColor: color,
-                color: '#fff',
+                color: wesAnderson.burgundy,
                 weight: 2,
                 opacity: 1,
-                fillOpacity: 0.8
+                fillOpacity: 0.85
             });
 
             const transitDisplay = permit.transit_score !== null ? permit.transit_score : 'N/A';
@@ -205,12 +242,15 @@ function createTimelineChart(data) {
             datasets: [{
                 label: 'Permits Issued',
                 data: data.values,
-                borderColor: '#1e3a5f',
-                backgroundColor: 'rgba(30, 58, 95, 0.1)',
+                borderColor: wesAnderson.burgundy,
+                backgroundColor: wesAnderson.peach + '40',
                 fill: true,
                 tension: 0.3,
-                pointRadius: 2,
-                pointHoverRadius: 4
+                pointRadius: 3,
+                pointHoverRadius: 6,
+                pointBackgroundColor: wesAnderson.burgundy,
+                pointBorderColor: wesAnderson.cream,
+                pointBorderWidth: 2
             }]
         },
         options: {
@@ -220,9 +260,13 @@ function createTimelineChart(data) {
                 legend: { display: false }
             },
             scales: {
-                y: { beginAtZero: true },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: wesAnderson.dustyRose + '30' }
+                },
                 x: {
-                    ticks: { maxTicksLimit: 20 }
+                    ticks: { maxTicksLimit: 20 },
+                    grid: { color: wesAnderson.dustyRose + '30' }
                 }
             }
         }
@@ -248,15 +292,18 @@ function createHousingTypeChart(counts) {
             datasets: [{
                 data: values,
                 backgroundColor: colors,
-                borderWidth: 2,
-                borderColor: '#fff'
+                borderWidth: 3,
+                borderColor: wesAnderson.burgundy
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom' }
+                legend: {
+                    position: 'bottom',
+                    labels: { color: wesAnderson.burgundy }
+                }
             }
         }
     });
@@ -283,7 +330,9 @@ function createUrbanRingChart(counts) {
                 label: 'Permits',
                 data: values,
                 backgroundColor: colors,
-                borderRadius: 4
+                borderColor: wesAnderson.burgundy,
+                borderWidth: 2,
+                borderRadius: 0
             }]
         },
         options: {
@@ -293,7 +342,13 @@ function createUrbanRingChart(counts) {
                 legend: { display: false }
             },
             scales: {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true,
+                    grid: { color: wesAnderson.dustyRose + '30' }
+                },
+                x: {
+                    grid: { display: false }
+                }
             }
         }
     });
@@ -314,8 +369,8 @@ function createYearlyTypeChart(yearlyByType) {
         label: type,
         data: years.map(year => yearlyByType[year]?.[type] || 0),
         backgroundColor: housingTypeColors[type],
-        borderColor: housingTypeColors[type],
-        borderWidth: 2
+        borderColor: wesAnderson.burgundy,
+        borderWidth: 1
     }));
 
     yearlyTypeChart = new Chart(ctx, {
@@ -328,11 +383,21 @@ function createYearlyTypeChart(yearlyByType) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom' }
+                legend: {
+                    position: 'bottom',
+                    labels: { color: wesAnderson.burgundy }
+                }
             },
             scales: {
-                x: { stacked: true },
-                y: { stacked: true, beginAtZero: true }
+                x: {
+                    stacked: true,
+                    grid: { display: false }
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    grid: { color: wesAnderson.dustyRose + '30' }
+                }
             }
         }
     });
@@ -353,18 +418,22 @@ function createTransitChart(transitDist) {
             datasets: [{
                 data: [transitDist.high, transitDist.medium, transitDist.low],
                 backgroundColor: [transitScoreColors.high, transitScoreColors.medium, transitScoreColors.low],
-                borderWidth: 2,
-                borderColor: '#fff'
+                borderWidth: 3,
+                borderColor: wesAnderson.burgundy
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom' },
+                legend: {
+                    position: 'bottom',
+                    labels: { color: wesAnderson.burgundy }
+                },
                 title: {
                     display: true,
-                    text: `Average Score: ${transitDist.average}`
+                    text: `Average Score: ${transitDist.average}`,
+                    color: wesAnderson.burgundy
                 }
             }
         }
@@ -382,7 +451,7 @@ function createStatusChart(statusCounts) {
     const labels = Object.keys(statusCounts);
     const values = Object.values(statusCounts);
     const colors = labels.map(l =>
-        l.toLowerCase().includes('finaled') ? '#22c55e' : '#3b82f6'
+        l.toLowerCase().includes('finaled') ? wesAnderson.sage : wesAnderson.powderBlue
     );
 
     statusChart = new Chart(ctx, {
@@ -392,15 +461,18 @@ function createStatusChart(statusCounts) {
             datasets: [{
                 data: values,
                 backgroundColor: colors,
-                borderWidth: 2,
-                borderColor: '#fff'
+                borderWidth: 3,
+                borderColor: wesAnderson.burgundy
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { position: 'bottom' }
+                legend: {
+                    position: 'bottom',
+                    labels: { color: wesAnderson.burgundy }
+                }
             }
         }
     });
@@ -478,29 +550,67 @@ function updateStats(data) {
 // Switch view mode between permits and units
 function switchViewMode(mode) {
     currentView = mode;
-    
-    // Update toggle button states
-    document.querySelectorAll('.toggle-btn').forEach(btn => {
+
+    // Update toggle button states (only view buttons, not status buttons)
+    document.querySelectorAll('.toggle-btn[data-view]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === mode);
     });
-    
-    // Update stats cards
-    const counts = currentView === 'units' ? unitsByType : housingTypeCounts;
+
+    // Recalculate with current status filter
+    updateStatsFromFiltered();
+}
+
+// Switch status filter
+function switchStatusFilter(status) {
+    currentStatusFilter = status;
+
+    // Update toggle button states (only status buttons)
+    document.querySelectorAll('.toggle-btn[data-status]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.status === status);
+    });
+
+    // Recalculate everything with new status filter
+    updateStatsFromFiltered();
+    filterPermits();
+}
+
+// Recalculate stats based on current filters
+function updateStatsFromFiltered() {
+    const statusFiltered = filterByStatus(allPermits, currentStatusFilter);
+
+    // Recalculate counts
+    const newHousingCounts = {};
+    const newUnitsByType = {};
+    let totalUnits = 0;
+
+    statusFiltered.forEach(p => {
+        const ht = p.housing_type || 'Unknown';
+        const units = p.units || 1;
+
+        newHousingCounts[ht] = (newHousingCounts[ht] || 0) + 1;
+        newUnitsByType[ht] = (newUnitsByType[ht] || 0) + units;
+        totalUnits += units;
+    });
+
+    // Update stats display
+    document.getElementById('total-permits').textContent = statusFiltered.length.toLocaleString();
+    document.getElementById('total-units').textContent = totalUnits.toLocaleString();
+
+    const counts = currentView === 'units' ? newUnitsByType : newHousingCounts;
     document.getElementById('single-family-count').textContent = (counts['Single Family'] || 0).toLocaleString();
     document.getElementById('multifamily-count').textContent = (counts['Multifamily'] || 0).toLocaleString();
     document.getElementById('townhome-count').textContent = (counts['Townhome'] || 0).toLocaleString();
-    
+
     // Update housing type chart
     createHousingTypeChart(counts);
-    
-    // Update urban ring chart title
-    if (urbanRingChart) {
-        urbanRingChart.options.plugins.title = {
-            display: true,
-            text: currentView === 'units' ? 'Units by Urban Ring' : 'Permits by Urban Ring'
-        };
-        urbanRingChart.update();
-    }
+
+    // Update urban ring counts
+    const ringCounts = {};
+    statusFiltered.forEach(p => {
+        const ring = p.urban_ring || 'Unknown';
+        ringCounts[ring] = (ringCounts[ring] || 0) + 1;
+    });
+    createUrbanRingChart(ringCounts);
 }
 
 // Filter permits
@@ -511,7 +621,8 @@ function filterPermits() {
     const urbanRingFilter = document.getElementById('urban-ring-filter').value;
     const zipFilter = document.getElementById('zip-filter').value;
 
-    let filtered = allPermits;
+    // Start with status-filtered permits
+    let filtered = filterByStatus(allPermits, currentStatusFilter);
 
     if (housingTypeFilter) {
         filtered = filtered.filter(p => p.housing_type === housingTypeFilter);
@@ -626,9 +737,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // View toggle listener
-    document.querySelectorAll('.toggle-btn').forEach(btn => {
+    document.querySelectorAll('.toggle-btn[data-view]').forEach(btn => {
         btn.addEventListener('click', () => {
             switchViewMode(btn.dataset.view);
+        });
+    });
+
+    // Status toggle listener
+    document.querySelectorAll('.toggle-btn[data-status]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchStatusFilter(btn.dataset.status);
         });
     });
 

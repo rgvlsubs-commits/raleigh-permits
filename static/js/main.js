@@ -3,10 +3,48 @@ let allPermits = [];
 let permitData = null;
 let demographicData = null;
 let analyticsData = null;
-let currentView = 'permits';  // 'permits' or 'units'
 let currentStatusFilter = 'all';  // 'all', 'approved', 'completed'
-let housingTypeCounts = {};
-let unitsByType = {};
+
+// Chart-specific view modes
+const chartViews = {
+    timeline: 'permits',
+    housing: 'permits',
+    ring: 'permits',
+    yearly: 'permits',
+    transit: 'permits',
+    status: 'permits'
+};
+
+// Chart-specific ring filters
+const chartRingFilters = {
+    timeline: '',
+    housing: '',
+    yearly: '',
+    transit: '',
+    status: ''
+};
+
+// Table sorting state
+let tableSortColumn = 'permits';
+let tableSortDirection = 'desc';
+
+// Cached chart data (permits and units)
+let chartData = {
+    housingPermits: {},
+    housingUnits: {},
+    ringPermits: {},
+    ringUnits: {},
+    yearlyPermits: {},
+    yearlyUnits: {},
+    timelinePermits: {},
+    timelineUnits: {},
+    transitPermits: { high: 0, medium: 0, low: 0, average: 0 },
+    transitUnits: { high: 0, medium: 0, low: 0, average: 0, weightedAverage: 0 },
+    statusPermits: {},
+    statusUnits: {},
+    zipPermits: {},
+    zipUnits: {}
+};
 let map = null;
 let markers = null;
 let demographicCircles = [];
@@ -235,12 +273,13 @@ function createTimelineChart(data) {
         return `${year} W${week}`;
     });
 
+    const label = chartViews.timeline === 'units' ? 'Units' : 'Permits';
     timelineChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: formattedLabels,
             datasets: [{
-                label: 'Permits Issued',
+                label: label,
                 data: data.values,
                 borderColor: wesAnderson.burgundy,
                 backgroundColor: wesAnderson.peach + '40',
@@ -322,12 +361,13 @@ function createUrbanRingChart(counts) {
     const values = labels.map(l => counts[l]);
     const colors = labels.map(l => urbanRingColors[l] || urbanRingColors.Unknown);
 
+    const dataLabel = chartViews.ring === 'units' ? 'Units' : 'Permits';
     urbanRingChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [{
-                label: 'Permits',
+                label: dataLabel,
                 data: values,
                 backgroundColor: colors,
                 borderColor: wesAnderson.burgundy,
@@ -404,12 +444,16 @@ function createYearlyTypeChart(yearlyByType) {
 }
 
 // Create transit score chart
-function createTransitChart(transitDist) {
+function createTransitChart(transitDist, isUnits = false) {
     const ctx = document.getElementById('transit-chart').getContext('2d');
 
     if (transitChart) {
         transitChart.destroy();
     }
+
+    // Show weighted average for units view
+    const avgScore = isUnits ? transitDist.weightedAverage : transitDist.average;
+    const avgLabel = isUnits ? `Weighted Avg: ${avgScore}` : `Avg Score: ${avgScore}`;
 
     transitChart = new Chart(ctx, {
         type: 'doughnut',
@@ -432,7 +476,7 @@ function createTransitChart(transitDist) {
                 },
                 title: {
                     display: true,
-                    text: `Average Score: ${transitDist.average}`,
+                    text: avgLabel,
                     color: wesAnderson.burgundy
                 }
             }
@@ -478,18 +522,64 @@ function createStatusChart(statusCounts) {
     });
 }
 
-// Populate demographics table
+// Populate demographics table (initial load)
 function populateDemographicsTable(data) {
+    // Store demographic data for later updates
+    window.demographicZipData = data.zip_data;
+    updateDemographicsTable();
+}
+
+// Update demographics table with current permit/unit counts
+function updateDemographicsTable() {
     const tbody = document.getElementById('demographics-tbody');
     tbody.innerHTML = '';
 
-    data.zip_data.forEach(zip => {
+    if (!window.demographicZipData) return;
+
+    // Create enriched data with permit/unit counts
+    const enrichedData = window.demographicZipData.map(zip => ({
+        ...zip,
+        permits: chartData.zipPermits[zip.zip_code] || 0,
+        units: chartData.zipUnits[zip.zip_code] || 0
+    }));
+
+    // Sort based on current sort column and direction
+    const sortedData = [...enrichedData].sort((a, b) => {
+        let aVal, bVal;
+
+        switch(tableSortColumn) {
+            case 'zip': aVal = a.zip_code; bVal = b.zip_code; break;
+            case 'name': aVal = a.name; bVal = b.name; break;
+            case 'ring': aVal = a.urban_ring || ''; bVal = b.urban_ring || ''; break;
+            case 'permits': aVal = a.permits; bVal = b.permits; break;
+            case 'units': aVal = a.units; bVal = b.units; break;
+            case 'income': aVal = a.median_income; bVal = b.median_income; break;
+            case 'population': aVal = a.population; bVal = b.population; break;
+            case 'white': aVal = a.race.white; bVal = b.race.white; break;
+            case 'black': aVal = a.race.black; bVal = b.race.black; break;
+            case 'hispanic': aVal = a.race.hispanic; bVal = b.race.hispanic; break;
+            case 'asian': aVal = a.race.asian; bVal = b.race.asian; break;
+            default: aVal = a.permits; bVal = b.permits;
+        }
+
+        // String comparison for text columns
+        if (typeof aVal === 'string') {
+            const cmp = aVal.localeCompare(bVal);
+            return tableSortDirection === 'asc' ? cmp : -cmp;
+        }
+
+        // Numeric comparison
+        return tableSortDirection === 'asc' ? aVal - bVal : bVal - aVal;
+    });
+
+    sortedData.forEach(zip => {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${zip.zip_code}</td>
             <td>${zip.name}</td>
             <td>${zip.urban_ring || 'N/A'}</td>
-            <td><strong>${zip.permit_count}</strong></td>
+            <td><strong>${zip.permits.toLocaleString()}</strong></td>
+            <td><strong>${zip.units.toLocaleString()}</strong></td>
             <td>$${zip.median_income.toLocaleString()}</td>
             <td>${zip.population.toLocaleString()}</td>
             <td>${zip.race.white}%</td>
@@ -499,6 +589,27 @@ function populateDemographicsTable(data) {
         `;
         tbody.appendChild(row);
     });
+
+    // Update header sort indicators
+    document.querySelectorAll('#demographics-table th.sortable').forEach(th => {
+        th.classList.remove('asc', 'desc');
+        if (th.dataset.sort === tableSortColumn) {
+            th.classList.add(tableSortDirection);
+        }
+    });
+}
+
+// Sort demographics table by column
+function sortDemographicsTable(column) {
+    if (tableSortColumn === column) {
+        // Toggle direction
+        tableSortDirection = tableSortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+        // New column, default to descending for numbers, ascending for text
+        tableSortColumn = column;
+        tableSortDirection = ['zip', 'name', 'ring'].includes(column) ? 'asc' : 'desc';
+    }
+    updateDemographicsTable();
 }
 
 // Populate data table
@@ -535,31 +646,6 @@ function populateZipFilter(zipCounts) {
     });
 }
 
-// Update stats based on current view mode
-function updateStats(data) {
-    document.getElementById('total-permits').textContent = data.total_count.toLocaleString();
-    document.getElementById('total-units').textContent = (data.total_units || 0).toLocaleString();
-
-    // Use permits or units based on current view
-    const counts = currentView === 'units' ? unitsByType : housingTypeCounts;
-    document.getElementById('single-family-count').textContent = (counts['Single Family'] || 0).toLocaleString();
-    document.getElementById('multifamily-count').textContent = (counts['Multifamily'] || 0).toLocaleString();
-    document.getElementById('townhome-count').textContent = (counts['Townhome'] || 0).toLocaleString();
-}
-
-// Switch view mode between permits and units
-function switchViewMode(mode) {
-    currentView = mode;
-
-    // Update toggle button states (only view buttons, not status buttons)
-    document.querySelectorAll('.toggle-btn[data-view]').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.view === mode);
-    });
-
-    // Recalculate with current status filter
-    updateStatsFromFiltered();
-}
-
 // Switch status filter
 function switchStatusFilter(status) {
     currentStatusFilter = status;
@@ -570,47 +656,289 @@ function switchStatusFilter(status) {
     });
 
     // Recalculate everything with new status filter
-    updateStatsFromFiltered();
+    recalculateChartData();
+    updateStatsDisplay();
+    updateAllCharts();
+    updateDemographicsTable();
     filterPermits();
 }
 
-// Recalculate stats based on current filters
-function updateStatsFromFiltered() {
+// Toggle individual chart between permits and units
+function toggleChart(chartName, value) {
+    chartViews[chartName] = value;
+
+    // Update button states for this chart
+    const toggleContainer = document.querySelector(`.chart-toggle[data-chart="${chartName}"]`);
+    if (toggleContainer) {
+        toggleContainer.querySelectorAll('.mini-toggle').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.value === value);
+        });
+    }
+
+    // Update just this chart
+    updateChart(chartName);
+}
+
+// Recalculate all chart data based on current status filter
+function recalculateChartData() {
     const statusFiltered = filterByStatus(allPermits, currentStatusFilter);
 
-    // Recalculate counts
-    const newHousingCounts = {};
-    const newUnitsByType = {};
+    // Reset chart data
+    chartData.housingPermits = {};
+    chartData.housingUnits = {};
+    chartData.ringPermits = {};
+    chartData.ringUnits = {};
+    chartData.yearlyPermits = {};
+    chartData.yearlyUnits = {};
+    chartData.timelinePermits = {};
+    chartData.timelineUnits = {};
+    chartData.transitPermits = { high: 0, medium: 0, low: 0, average: 0 };
+    chartData.transitUnits = { high: 0, medium: 0, low: 0, average: 0, weightedAverage: 0 };
+    chartData.statusPermits = {};
+    chartData.statusUnits = {};
+    chartData.zipPermits = {};
+    chartData.zipUnits = {};
+
     let totalUnits = 0;
+    let transitScoreSum = 0;
+    let transitScoreCount = 0;
+    let weightedTransitSum = 0;
 
     statusFiltered.forEach(p => {
         const ht = p.housing_type || 'Unknown';
         const units = p.units || 1;
-
-        newHousingCounts[ht] = (newHousingCounts[ht] || 0) + 1;
-        newUnitsByType[ht] = (newUnitsByType[ht] || 0) + units;
-        totalUnits += units;
-    });
-
-    // Update stats display
-    document.getElementById('total-permits').textContent = statusFiltered.length.toLocaleString();
-    document.getElementById('total-units').textContent = totalUnits.toLocaleString();
-
-    const counts = currentView === 'units' ? newUnitsByType : newHousingCounts;
-    document.getElementById('single-family-count').textContent = (counts['Single Family'] || 0).toLocaleString();
-    document.getElementById('multifamily-count').textContent = (counts['Multifamily'] || 0).toLocaleString();
-    document.getElementById('townhome-count').textContent = (counts['Townhome'] || 0).toLocaleString();
-
-    // Update housing type chart
-    createHousingTypeChart(counts);
-
-    // Update urban ring counts
-    const ringCounts = {};
-    statusFiltered.forEach(p => {
         const ring = p.urban_ring || 'Unknown';
-        ringCounts[ring] = (ringCounts[ring] || 0) + 1;
+        const year = p.issue_year;
+        const status = p.status || 'Unknown';
+        const transitScore = p.transit_score;
+        const zip = p.zip_code || 'Unknown';
+
+        totalUnits += units;
+
+        // Housing type
+        chartData.housingPermits[ht] = (chartData.housingPermits[ht] || 0) + 1;
+        chartData.housingUnits[ht] = (chartData.housingUnits[ht] || 0) + units;
+
+        // Urban ring
+        chartData.ringPermits[ring] = (chartData.ringPermits[ring] || 0) + 1;
+        chartData.ringUnits[ring] = (chartData.ringUnits[ring] || 0) + units;
+
+        // Zip code
+        chartData.zipPermits[zip] = (chartData.zipPermits[zip] || 0) + 1;
+        chartData.zipUnits[zip] = (chartData.zipUnits[zip] || 0) + units;
+
+        // Yearly by type
+        if (year) {
+            if (!chartData.yearlyPermits[year]) chartData.yearlyPermits[year] = {};
+            if (!chartData.yearlyUnits[year]) chartData.yearlyUnits[year] = {};
+            chartData.yearlyPermits[year][ht] = (chartData.yearlyPermits[year][ht] || 0) + 1;
+            chartData.yearlyUnits[year][ht] = (chartData.yearlyUnits[year][ht] || 0) + units;
+        }
+
+        // Timeline (by week)
+        if (p.issue_date && p.issue_date !== 'Unknown') {
+            const date = new Date(p.issue_date);
+            const weekKey = `${date.getFullYear()}-${String(getWeekNumber(date)).padStart(2, '0')}`;
+            chartData.timelinePermits[weekKey] = (chartData.timelinePermits[weekKey] || 0) + 1;
+            chartData.timelineUnits[weekKey] = (chartData.timelineUnits[weekKey] || 0) + units;
+        }
+
+        // Transit score
+        if (transitScore !== null && transitScore !== undefined) {
+            transitScoreSum += transitScore;
+            transitScoreCount++;
+            weightedTransitSum += transitScore * units;
+
+            if (transitScore >= 70) {
+                chartData.transitPermits.high++;
+                chartData.transitUnits.high += units;
+            } else if (transitScore >= 40) {
+                chartData.transitPermits.medium++;
+                chartData.transitUnits.medium += units;
+            } else {
+                chartData.transitPermits.low++;
+                chartData.transitUnits.low += units;
+            }
+        }
+
+        // Status
+        chartData.statusPermits[status] = (chartData.statusPermits[status] || 0) + 1;
+        chartData.statusUnits[status] = (chartData.statusUnits[status] || 0) + units;
     });
-    createUrbanRingChart(ringCounts);
+
+    // Calculate averages
+    chartData.transitPermits.average = transitScoreCount > 0 ? Math.round(transitScoreSum / transitScoreCount * 10) / 10 : 0;
+    chartData.transitUnits.average = chartData.transitPermits.average; // Same average per permit
+    chartData.transitUnits.weightedAverage = totalUnits > 0 ? Math.round(weightedTransitSum / totalUnits * 10) / 10 : 0;
+
+    // Store totals
+    chartData.totalPermits = statusFiltered.length;
+    chartData.totalUnits = totalUnits;
+
+    return statusFiltered;
+}
+
+// Update stats display
+function updateStatsDisplay() {
+    document.getElementById('total-permits').textContent = chartData.totalPermits.toLocaleString();
+    document.getElementById('total-units').textContent = chartData.totalUnits.toLocaleString();
+    document.getElementById('single-family-count').textContent = (chartData.housingPermits['Single Family'] || 0).toLocaleString();
+    document.getElementById('multifamily-count').textContent = (chartData.housingPermits['Multifamily'] || 0).toLocaleString();
+    document.getElementById('townhome-count').textContent = (chartData.housingPermits['Townhome'] || 0).toLocaleString();
+}
+
+// Update all charts based on their individual view modes
+function updateAllCharts() {
+    updateChart('timeline');
+    updateChart('housing');
+    updateChart('ring');
+    updateChart('yearly');
+    updateChart('transit');
+    updateChart('status');
+}
+
+// Calculate chart data filtered by ring
+function getFilteredChartData(chartName) {
+    const ringFilter = chartRingFilters[chartName] || '';
+    const isUnits = chartViews[chartName] === 'units';
+
+    // If no ring filter, use cached data
+    if (!ringFilter) {
+        return { isUnits, ringFilter };
+    }
+
+    // Filter permits by ring and recalculate for this chart
+    const filtered = filterByStatus(allPermits, currentStatusFilter)
+        .filter(p => p.urban_ring === ringFilter);
+
+    const data = {
+        housing: { permits: {}, units: {} },
+        timeline: { permits: {}, units: {} },
+        yearly: { permits: {}, units: {} },
+        transit: { permits: { high: 0, medium: 0, low: 0 }, units: { high: 0, medium: 0, low: 0 } },
+        status: { permits: {}, units: {} }
+    };
+
+    let transitScoreSum = 0, transitScoreCount = 0, weightedTransitSum = 0, totalUnits = 0;
+
+    filtered.forEach(p => {
+        const ht = p.housing_type || 'Unknown';
+        const units = p.units || 1;
+        const year = p.issue_year;
+        const status = p.status || 'Unknown';
+        const transitScore = p.transit_score;
+
+        totalUnits += units;
+
+        // Housing type
+        data.housing.permits[ht] = (data.housing.permits[ht] || 0) + 1;
+        data.housing.units[ht] = (data.housing.units[ht] || 0) + units;
+
+        // Yearly
+        if (year) {
+            if (!data.yearly.permits[year]) data.yearly.permits[year] = {};
+            if (!data.yearly.units[year]) data.yearly.units[year] = {};
+            data.yearly.permits[year][ht] = (data.yearly.permits[year][ht] || 0) + 1;
+            data.yearly.units[year][ht] = (data.yearly.units[year][ht] || 0) + units;
+        }
+
+        // Timeline
+        if (p.issue_date && p.issue_date !== 'Unknown') {
+            const date = new Date(p.issue_date);
+            const weekKey = `${date.getFullYear()}-${String(getWeekNumber(date)).padStart(2, '0')}`;
+            data.timeline.permits[weekKey] = (data.timeline.permits[weekKey] || 0) + 1;
+            data.timeline.units[weekKey] = (data.timeline.units[weekKey] || 0) + units;
+        }
+
+        // Transit
+        if (transitScore !== null && transitScore !== undefined) {
+            transitScoreSum += transitScore;
+            transitScoreCount++;
+            weightedTransitSum += transitScore * units;
+            if (transitScore >= 70) {
+                data.transit.permits.high++;
+                data.transit.units.high += units;
+            } else if (transitScore >= 40) {
+                data.transit.permits.medium++;
+                data.transit.units.medium += units;
+            } else {
+                data.transit.permits.low++;
+                data.transit.units.low += units;
+            }
+        }
+
+        // Status
+        data.status.permits[status] = (data.status.permits[status] || 0) + 1;
+        data.status.units[status] = (data.status.units[status] || 0) + units;
+    });
+
+    data.transit.permits.average = transitScoreCount > 0 ? Math.round(transitScoreSum / transitScoreCount * 10) / 10 : 0;
+    data.transit.units.average = data.transit.permits.average;
+    data.transit.units.weightedAverage = totalUnits > 0 ? Math.round(weightedTransitSum / totalUnits * 10) / 10 : 0;
+
+    return { isUnits, ringFilter, data };
+}
+
+// Update a single chart based on its view mode and ring filter
+function updateChart(chartName) {
+    const { isUnits, ringFilter, data } = getFilteredChartData(chartName);
+
+    switch(chartName) {
+        case 'timeline':
+            const timelineSource = ringFilter ? data.timeline : chartData;
+            const timelineData = isUnits ?
+                (ringFilter ? timelineSource.units : timelineSource.timelineUnits) :
+                (ringFilter ? timelineSource.permits : timelineSource.timelinePermits);
+            const sortedTimeline = Object.entries(timelineData).sort((a, b) => a[0].localeCompare(b[0]));
+            createTimelineChart({
+                labels: sortedTimeline.map(t => t[0]),
+                values: sortedTimeline.map(t => t[1])
+            });
+            break;
+        case 'housing':
+            const housingSource = ringFilter ? data.housing : chartData;
+            createHousingTypeChart(isUnits ?
+                (ringFilter ? housingSource.units : housingSource.housingUnits) :
+                (ringFilter ? housingSource.permits : housingSource.housingPermits));
+            break;
+        case 'ring':
+            createUrbanRingChart(isUnits ? chartData.ringUnits : chartData.ringPermits);
+            break;
+        case 'yearly':
+            const yearlySource = ringFilter ? data.yearly : chartData;
+            createYearlyTypeChart(isUnits ?
+                (ringFilter ? yearlySource.units : yearlySource.yearlyUnits) :
+                (ringFilter ? yearlySource.permits : yearlySource.yearlyPermits));
+            break;
+        case 'transit':
+            const transitSource = ringFilter ? data.transit : chartData;
+            const transitData = isUnits ?
+                (ringFilter ? transitSource.units : transitSource.transitUnits) :
+                (ringFilter ? transitSource.permits : transitSource.transitPermits);
+            createTransitChart(transitData, isUnits);
+            break;
+        case 'status':
+            const statusSource = ringFilter ? data.status : chartData;
+            createStatusChart(isUnits ?
+                (ringFilter ? statusSource.units : statusSource.statusUnits) :
+                (ringFilter ? statusSource.permits : statusSource.statusPermits));
+            break;
+    }
+}
+
+// Set ring filter for a chart
+function setChartRingFilter(chartName, ring) {
+    chartRingFilters[chartName] = ring;
+    updateChart(chartName);
+}
+
+// Helper to get ISO week number
+function getWeekNumber(date) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
 // Filter permits
@@ -688,20 +1016,14 @@ async function loadData() {
         analyticsData = analytics;
         demographicData = demographics;
         allPermits = permits.permits;
-        
-        // Store both permit counts and unit counts
-        housingTypeCounts = analytics.housing_type_counts || {};
-        unitsByType = analytics.units_by_type || {};
 
-        // Update UI with permit data
-        updateStats(permits);
+        // Calculate chart data from permits
+        recalculateChartData();
+
+        // Update UI
+        updateStatsDisplay();
         populateMap(permits.permits);
-        createTimelineChart(analytics.timeline || { labels: [], values: [] });
-        createHousingTypeChart(analytics.housing_type_counts);
-        createUrbanRingChart(analytics.urban_ring_counts);
-        createYearlyTypeChart(analytics.yearly_by_type);
-        createTransitChart(analytics.transit_distribution);
-        createStatusChart(analytics.status_counts || {});
+        updateAllCharts();
         populateTable(permits.permits);
         populateZipFilter(permits.unfiltered_totals?.zip_counts || permits.zip_counts || {});
 
@@ -736,17 +1058,35 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDemographicOverlay(e.target.value);
     });
 
-    // View toggle listener
-    document.querySelectorAll('.toggle-btn[data-view]').forEach(btn => {
-        btn.addEventListener('click', () => {
-            switchViewMode(btn.dataset.view);
-        });
-    });
-
     // Status toggle listener
     document.querySelectorAll('.toggle-btn[data-status]').forEach(btn => {
         btn.addEventListener('click', () => {
             switchStatusFilter(btn.dataset.status);
+        });
+    });
+
+    // Chart-specific toggle listeners
+    document.querySelectorAll('.chart-toggle').forEach(toggleContainer => {
+        const chartName = toggleContainer.dataset.chart;
+        toggleContainer.querySelectorAll('.mini-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                toggleChart(chartName, btn.dataset.value);
+            });
+        });
+    });
+
+    // Ring filter listeners
+    document.querySelectorAll('.ring-filter').forEach(select => {
+        select.addEventListener('change', (e) => {
+            const chartName = e.target.dataset.chart;
+            setChartRingFilter(chartName, e.target.value);
+        });
+    });
+
+    // Demographics table sorting
+    document.querySelectorAll('#demographics-table th.sortable').forEach(th => {
+        th.addEventListener('click', () => {
+            sortDemographicsTable(th.dataset.sort);
         });
     });
 

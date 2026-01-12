@@ -527,3 +527,94 @@ footer a {
     background: var(--burgundy);
     color: var(--cream);
 }
+
+/* Chart Header with Toggle */
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.chart-header h2 {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.chart-toggle {
+    display: flex;
+    border: 1px solid var(--burgundy);
+    background: var(--cream);
+}
+
+.mini-toggle {
+    padding: 0.25rem 0.6rem;
+    border: none;
+    background: transparent;
+    color: var(--burgundy);
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    transition: all 0.15s ease;
+}
+
+.mini-toggle:hover {
+    background: var(--peach);
+}
+
+.mini-toggle.active {
+    background: var(--burgundy);
+    color: var(--cream);
+}
+
+/* Chart Controls */
+.chart-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.ring-filter {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--burgundy);
+    background: var(--cream);
+    color: var(--burgundy);
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.ring-filter:focus {
+    outline: 2px solid var(--mustard);
+}
+
+/* Sortable Table Headers */
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+th.sortable:hover {
+    background: var(--salmon);
+}
+
+th.sortable::after {
+    content: '';
+    margin-left: 0.5rem;
+    opacity: 0.3;
+}
+
+th.sortable.asc::after {
+    content: '▲';
+    opacity: 1;
+}
+
+th.sortable.desc::after {
+    content: '▼';
+    opacity: 1;
+}

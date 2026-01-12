@@ -16,16 +16,11 @@
     </header>
     <main>
         <div class="view-toggle-container">
-            <span class="view-toggle-label">View by:</span>
-            <div class="view-toggle">
-                <button class="toggle-btn active" data-view="permits">Permits</button>
-                <button class="toggle-btn" data-view="units">Units</button>
-            </div>
             <span class="view-toggle-label">Status:</span>
             <div class="view-toggle">
                 <button class="toggle-btn status-btn active" data-status="all">All</button>
-                <button class="toggle-btn status-btn" data-status="approved">Approved</button>
-                <button class="toggle-btn status-btn" data-status="completed">Completed</button>
+                <button class="toggle-btn status-btn" data-status="approved">Permitted</button>
+                <button class="toggle-btn status-btn" data-status="completed">Built</button>
             </div>
         </div>
         <section class="stats-container">
@@ -60,21 +55,78 @@
             <div id="demographic-legend" class="demographic-legend hidden"></div>
             <div id="map"></div>
         </section>
-        <section class="charts-section"><div class="chart-container full-width"><h2>Permits Over Time</h2><canvas id="timeline-chart"></canvas></div></section>
         <section class="charts-section">
-            <div class="chart-container"><h2>Housing Type Breakdown</h2><canvas id="housing-type-chart"></canvas></div>
-            <div class="chart-container"><h2>By Urban Ring</h2><canvas id="urban-ring-chart"></canvas></div>
+            <div class="chart-container full-width">
+                <div class="chart-header">
+                    <h2>Over Time</h2>
+                    <div class="chart-controls">
+                        <select class="ring-filter" data-chart="timeline"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                        <div class="chart-toggle" data-chart="timeline"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+                    </div>
+                </div>
+                <canvas id="timeline-chart"></canvas>
+            </div>
         </section>
-        <section class="charts-section"><div class="chart-container full-width"><h2>Yearly Trends by Housing Type</h2><canvas id="yearly-type-chart"></canvas></div></section>
         <section class="charts-section">
-            <div class="chart-container"><h2>Transit Score Distribution</h2><canvas id="transit-chart"></canvas></div>
-            <div class="chart-container"><h2>Permit Status</h2><canvas id="status-chart"></canvas></div>
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2>Housing Type</h2>
+                    <div class="chart-controls">
+                        <select class="ring-filter" data-chart="housing"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                        <div class="chart-toggle" data-chart="housing"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+                    </div>
+                </div>
+                <canvas id="housing-type-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2>Urban Ring</h2>
+                    <div class="chart-controls">
+                        <div class="chart-toggle" data-chart="ring"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+                    </div>
+                </div>
+                <canvas id="urban-ring-chart"></canvas>
+            </div>
+        </section>
+        <section class="charts-section">
+            <div class="chart-container full-width">
+                <div class="chart-header">
+                    <h2>Yearly Trends</h2>
+                    <div class="chart-controls">
+                        <select class="ring-filter" data-chart="yearly"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                        <div class="chart-toggle" data-chart="yearly"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+                    </div>
+                </div>
+                <canvas id="yearly-type-chart"></canvas>
+            </div>
+        </section>
+        <section class="charts-section">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2>Transit Score</h2>
+                    <div class="chart-controls">
+                        <select class="ring-filter" data-chart="transit"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                        <div class="chart-toggle" data-chart="transit"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+                    </div>
+                </div>
+                <canvas id="transit-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2>Permit Status</h2>
+                    <div class="chart-controls">
+                        <select class="ring-filter" data-chart="status"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                        <div class="chart-toggle" data-chart="status"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+                    </div>
+                </div>
+                <canvas id="status-chart"></canvas>
+            </div>
         </section>
         <section class="table-section">
             <h2>Permit Activity by Zip Code with Demographics</h2>
             <p class="section-subtitle">Census ACS 2019-2023 5-Year Estimates</p>
             <div class="table-wrapper">
-                <table id="demographics-table"><thead><tr><th>Zip Code</th><th>Area</th><th>Ring</th><th>Permits</th><th>Median Income</th><th>Population</th><th>% White</th><th>% Black</th><th>% Hispanic</th><th>% Asian</th></tr></thead><tbody id="demographics-tbody"></tbody></table>
+                <table id="demographics-table"><thead><tr><th class="sortable" data-sort="zip">Zip Code</th><th class="sortable" data-sort="name">Area</th><th class="sortable" data-sort="ring">Ring</th><th class="sortable desc" data-sort="permits">Permits</th><th class="sortable" data-sort="units">Units</th><th class="sortable" data-sort="income">Median Income</th><th class="sortable" data-sort="population">Population</th><th class="sortable" data-sort="white">% White</th><th class="sortable" data-sort="black">% Black</th><th class="sortable" data-sort="hispanic">% Hispanic</th><th class="sortable" data-sort="asian">% Asian</th></tr></thead><tbody id="demographics-tbody"></tbody></table>
             </div>
         </section>
         <section class="table-section">

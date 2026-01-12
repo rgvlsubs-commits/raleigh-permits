@@ -1091,6 +1091,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Narrative box toggle
+    document.querySelectorAll('.narrative-header').forEach(header => {
+        header.addEventListener('click', () => {
+            const box = header.closest('.narrative-box');
+            box.classList.toggle('collapsed');
+        });
+    });
+
     // Load data
     loadData();
 });

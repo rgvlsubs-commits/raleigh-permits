@@ -622,3 +622,96 @@ th.sortable.desc::after {
     content: '▼';
     opacity: 1;
 }
+
+/* Narrative Boxes - Axios Style */
+.narrative-box {
+    margin-top: 1.5rem;
+    border: 2px solid var(--ochre);
+    background: var(--peach);
+    position: relative;
+}
+
+.narrative-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    background: var(--ochre);
+    color: var(--burgundy);
+    user-select: none;
+}
+
+.narrative-header:hover {
+    background: var(--mustard);
+}
+
+.narrative-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.narrative-toggle {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+}
+
+.narrative-box.collapsed .narrative-toggle {
+    transform: rotate(-90deg);
+}
+
+.narrative-content {
+    padding: 1rem 1.25rem;
+    display: block;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.narrative-box.collapsed .narrative-content {
+    display: none;
+}
+
+.narrative-content h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: var(--burgundy);
+    font-size: 0.95rem;
+    margin: 0.75rem 0 0.5rem 0;
+    font-weight: 700;
+}
+
+.narrative-content h4:first-child {
+    margin-top: 0;
+}
+
+.narrative-content ul {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+}
+
+.narrative-content li {
+    margin-bottom: 0.4rem;
+    color: var(--burgundy);
+}
+
+.narrative-content li strong {
+    color: var(--burgundy);
+}
+
+.narrative-content .stat-highlight {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--burgundy);
+}
+
+.narrative-content .context-note {
+    font-size: 0.85rem;
+    color: var(--terracotta);
+    font-style: italic;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--ochre);
+}

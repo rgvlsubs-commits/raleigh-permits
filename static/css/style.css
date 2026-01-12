@@ -457,6 +457,10 @@ footer a {
     background-color: var(--mustard);
 }
 
+.legend-dot.small-multifamily {
+    background-color: var(--ochre);
+}
+
 .legend-dot.townhome {
     background-color: var(--sage);
 }

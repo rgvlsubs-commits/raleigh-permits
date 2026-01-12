@@ -229,4 +229,5 @@ Multifamily = (occupancyclass contains 'R2' AND units >= 5)
 | 2026-01-11 | Claude | 2022 multifamily permits show 1-unit R2 | Documented as data quality issue, recommend filtering by units >= 5 |
 | 2026-01-11 | External | Multifamily slowdown confirmed | Axios, Apartment List confirm national/local trend |
 | 2026-01-11 | Claude | Cross-LLM validation completed | Confirmed findings, recommended units >= 5 filter |
+| 2026-01-12 | Claude | Implemented units >= 5 for Multifamily | Added "Small Multifamily" (3-4 units) category |
 

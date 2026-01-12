@@ -419,14 +419,18 @@ def fetch_permits():
 def classify_housing_type(props: dict) -> str:
     """
     Classify permit into housing type category.
-    Returns one of: Single Family, Multifamily, Townhome, Duplex, ADU, Unknown
+    Returns one of: Single Family, Multifamily, Small Multifamily, Townhome, Duplex, ADU, Unknown
 
     Priority order (unit count takes precedence over workclass):
     1. ADU (explicit adu_type field)
-    2. Multifamily (R2 occupancy or 3+ units)
-    3. Duplex (2 units)
-    4. Townhouse (workclass match)
-    5. Single Family (workclass match or default)
+    2. Multifamily (5+ units) - true apartment buildings
+    3. Small Multifamily (3-4 units) - triplexes/fourplexes
+    4. Duplex (2 units)
+    5. Townhouse (workclass match)
+    6. Single Family (workclass match or default)
+
+    Note: Changed from "R2 or 3+ units" to "5+ units" for multifamily per audit.
+    This prevents 1-unit R2 condo permits from inflating multifamily counts.
     """
     workclass = (props.get("workclass") or "").strip().lower()
     occupancy = (props.get("occupancyclass") or "").strip().lower()
@@ -438,19 +442,25 @@ def classify_housing_type(props: dict) -> str:
     if adu_type and adu_type.lower() not in ("null", "not accessory dwelling", "not accessory dwelli", ""):
         return "ADU"
 
-    # Priority 2: Multifamily (R2 occupancy or 3+ units)
-    if "r2" in occupancy or "residential 2" in occupancy or units >= 3:
+    # Priority 2: Multifamily (5+ units)
+    # Note: Changed from "R2 or 3+ units" to "5+ units" per audit recommendation
+    # This excludes 1-unit R2 condo permits that inflated multifamily counts
+    if units >= 5:
         return "Multifamily"
 
-    # Priority 3: Duplex (2 units)
+    # Priority 3: Small Multifamily (3-4 units)
+    if units >= 3:
+        return "Small Multifamily"
+
+    # Priority 4: Duplex (2 units)
     if "duplex" in occupancy or units == 2:
         return "Duplex"
 
-    # Priority 4: Townhouse (workclass match)
+    # Priority 5: Townhouse (workclass match)
     if "townhouse" in workclass or "townhome" in workclass:
         return "Townhome"
 
-    # Priority 5: Single Family (workclass match or default)
+    # Priority 6: Single Family (workclass match or default)
     if "single family" in workclass or "r3" in occupancy or "sfd" in occupancy or units == 1:
         return "Single Family"
 

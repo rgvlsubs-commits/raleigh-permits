@@ -74,10 +74,11 @@ const wesAnderson = {
 const housingTypeColors = {
     'Single Family': wesAnderson.powderBlue,
     'Multifamily': wesAnderson.mustard,
+    'Small Multifamily': wesAnderson.ochre,
     'Townhome': wesAnderson.sage,
     'Duplex': wesAnderson.lavender,
     'ADU': wesAnderson.salmon,
-    'Unknown': wesAnderson.ochre
+    'Unknown': wesAnderson.dustyRose
 };
 
 // Colors for urban rings - Wes Anderson palette

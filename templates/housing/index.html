@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}Housing | Raleigh Insights{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">The Municipal Chronicle of Domestic Construction</h2>
+    <p class="page-subtitle">A Visual Record of Residential Building Permits in the City of Raleigh, 2020-Present</p>
+</div>
+
+<div class="view-toggle-container">
+    <span class="view-toggle-label">Status:</span>
+    <div class="view-toggle">
+        <button class="toggle-btn status-btn active" data-status="all">All</button>
+        <button class="toggle-btn status-btn" data-status="approved">Permitted</button>
+        <button class="toggle-btn status-btn" data-status="completed">Built</button>
+    </div>
+</div>
+
+<section class="stats-container">
+    <div class="stat-card"><span class="stat-value" id="total-permits">--</span><span class="stat-label">Total Permits</span></div>
+    <div class="stat-card"><span class="stat-value" id="total-units">--</span><span class="stat-label">Total Units</span></div>
+    <div class="stat-card"><span class="stat-value" id="single-family-count">--</span><span class="stat-label">Single Family</span></div>
+    <div class="stat-card"><span class="stat-value" id="multifamily-count">--</span><span class="stat-label">Multifamily</span></div>
+    <div class="stat-card"><span class="stat-value" id="townhome-count">--</span><span class="stat-label">Townhome</span></div>
+</section>
+
+<div class="narrative-box collapsed">
+    <div class="narrative-header">
+        <span class="narrative-title">The Big Picture: Raleigh's Housing Boom</span>
+        <span class="narrative-toggle">&#9660;</span>
+    </div>
+    <div class="narrative-content">
+        <h4>Why it matters</h4>
+        <ul>
+            <li><strong>Raleigh is one of America's fastest-growing cities.</strong> The metro area added 175,000+ residents since 2020, fueling demand for ~2,000 new housing units annually.</li>
+            <li><strong>Housing production is keeping pace-barely.</strong> Nearly 10,000 permits since 2020 represents significant supply, but vacancy rates remain tight at 5.2%.</li>
+            <li><strong>The mix matters for affordability.</strong> Townhomes now rival single-family permits, signaling a shift toward denser, more affordable options.</li>
+        </ul>
+        <h4>By the numbers</h4>
+        <ul>
+            <li><strong>Median home price:</strong> $425,000 (up 42% since 2020, per Redfin)</li>
+            <li><strong>Median rent:</strong> $1,580/month (down 3% YoY after 2022 peak, per Apartment List)</li>
+            <li><strong>Population growth:</strong> 2.1% annually vs. 0.5% national average</li>
+        </ul>
+        <p class="context-note">Data note: Permits represent authorization to build, not completed construction. Typical permit-to-occupancy lag is 12-18 months.</p>
+    </div>
+</div>
+
+<section class="map-section">
+    <div class="map-header">
+        <h2>Permit Locations</h2>
+        <div class="map-controls">
+            <label>Overlay:</label>
+            <select id="demographic-overlay">
+                <option value="none">None</option>
+                <option value="income">Median Income</option>
+                <option value="white">% White</option>
+                <option value="black">% Black</option>
+                <option value="hispanic">% Hispanic</option>
+                <option value="asian">% Asian</option>
+            </select>
+        </div>
+    </div>
+    <div class="map-legend">
+        <span class="legend-item"><span class="legend-dot single-family"></span> Single Family</span>
+        <span class="legend-item"><span class="legend-dot multifamily"></span> Multifamily (5+)</span>
+        <span class="legend-item"><span class="legend-dot small-multifamily"></span> Small MF (3-4)</span>
+        <span class="legend-item"><span class="legend-dot townhome"></span> Townhome</span>
+        <span class="legend-item"><span class="legend-dot duplex"></span> Duplex</span>
+        <span class="legend-item"><span class="legend-dot adu"></span> ADU</span>
+    </div>
+    <div id="demographic-legend" class="demographic-legend hidden"></div>
+    <div id="map"></div>
+    <div class="narrative-box collapsed">
+        <div class="narrative-header">
+            <span class="narrative-title">Where Raleigh Is Building</span>
+            <span class="narrative-toggle">&#9660;</span>
+        </div>
+        <div class="narrative-content">
+            <h4>The geographic story</h4>
+            <ul>
+                <li><strong>Growth follows infrastructure.</strong> The densest permit clusters align with I-540 completion zones and planned BRT corridors along New Bern Ave and Western Blvd.</li>
+                <li><strong>Downtown is not the growth engine.</strong> Just 3% of permits are in the 27601 core-most growth is in inner and outer suburbs where land is cheaper.</li>
+                <li><strong>Northeast Raleigh (27616) leads in volume</strong> with the most diverse housing mix: single-family, townhomes, and the region's largest multifamily projects.</li>
+            </ul>
+            <h4>The demographic overlay</h4>
+            <ul>
+                <li><strong>Higher-income zip codes</strong> (North Raleigh, Brier Creek) see predominantly single-family construction.</li>
+                <li><strong>Majority-Black neighborhoods</strong> (Southeast, East Raleigh) are seeing significant townhome development-raising questions about displacement vs. investment.</li>
+                <li><strong>Missing middle housing</strong> (duplexes, small multifamily) clusters in Near Downtown areas with older housing stock.</li>
+            </ul>
+            <p class="context-note">Toggle the demographic overlay above to explore the relationship between new construction and neighborhood demographics.</p>
+        </div>
+    </div>
+</section>
+
+<section class="charts-section">
+    <div class="chart-container full-width">
+        <div class="chart-header">
+            <h2>Over Time</h2>
+            <div class="chart-controls">
+                <select class="ring-filter" data-chart="timeline"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                <div class="chart-toggle" data-chart="timeline"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+            </div>
+        </div>
+        <canvas id="timeline-chart"></canvas>
+        <div class="narrative-box collapsed">
+            <div class="narrative-header">
+                <span class="narrative-title">The Boom, The Bust, The Recovery</span>
+                <span class="narrative-toggle">&#9660;</span>
+            </div>
+            <div class="narrative-content">
+                <h4>What the timeline reveals</h4>
+                <ul>
+                    <li><strong>2020-2021: Pandemic building boom.</strong> Low interest rates (2.7% mortgages) and remote work migration drove record permit activity despite COVID uncertainty.</li>
+                    <li><strong>2022: The Fed hits the brakes.</strong> Seven rate hikes pushed mortgages from 3% to 7%, cooling both buyer demand and developer financing.</li>
+                    <li><strong>2023-2024: Selective recovery.</strong> Single-family and townhome permits rebounded, but multifamily remains depressed as developers wait out high financing costs.</li>
+                </ul>
+                <h4>Yes, but</h4>
+                <ul>
+                    <li><strong>Permits lag reality.</strong> The 2022 "collapse" in multifamily partly reflects a shift in how Raleigh issues permits (per-unit vs. per-building), not just market conditions.</li>
+                    <li><strong>National context matters.</strong> Raleigh's multifamily slowdown mirrors a 16% national drop (per Apartment List), but the city still ranks #2 in multifamily permits per capita.</li>
+                </ul>
+                <h4>What to watch</h4>
+                <ul>
+                    <li><strong>Rate cuts in 2025</strong> could unlock pent-up multifamily projects currently on hold.</li>
+                    <li><strong>Raleigh's Missing Middle reforms</strong> (allowing more duplexes/triplexes) may show up in 2025-2026 permit data.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="charts-section">
+    <div class="chart-container">
+        <div class="chart-header">
+            <h2>Housing Type</h2>
+            <div class="chart-controls">
+                <select class="ring-filter" data-chart="housing"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                <div class="chart-toggle" data-chart="housing"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+            </div>
+        </div>
+        <canvas id="housing-type-chart"></canvas>
+    </div>
+    <div class="chart-container">
+        <div class="chart-header">
+            <h2>Urban Ring</h2>
+            <div class="chart-controls">
+                <div class="chart-toggle" data-chart="ring"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+            </div>
+        </div>
+        <canvas id="urban-ring-chart"></canvas>
+    </div>
+</section>
+
+<div class="narrative-box collapsed">
+    <div class="narrative-header">
+        <span class="narrative-title">Is Raleigh Densifying?</span>
+        <span class="narrative-toggle">&#9660;</span>
+    </div>
+    <div class="narrative-content">
+        <h4>The density question</h4>
+        <ul>
+            <li><strong>Townhomes are the quiet revolution.</strong> At 46% of permits, attached housing now rivals single-family-a major shift from the sprawl-dominated 2010s.</li>
+            <li><strong>True multifamily (5+ units) remains rare.</strong> Just 89 apartment building permits since 2020, producing ~2,750 units. Most units come from fewer, larger projects.</li>
+            <li><strong>ADUs are emerging but small.</strong> 113 accessory dwelling units permitted-promising for gentle density, but still &lt;2% of total permits.</li>
+        </ul>
+        <h4>The suburban reality</h4>
+        <ul>
+            <li><strong>Inner suburbs dominate.</strong> 60% of all permits are in established suburban zip codes (27606, 27609, 27610, 27612, 27615, 27616).</li>
+            <li><strong>Downtown is under-building.</strong> Despite high transit scores, the urban core produces just 3% of permits-land costs and NIMBY resistance are factors.</li>
+            <li><strong>Outer suburbs are sprawling.</strong> Single-family homes still dominate the 27613/27614/27617 edge, where infrastructure is newest.</li>
+        </ul>
+        <h4>The affordability math</h4>
+        <ul>
+            <li><strong>Townhomes average $350K</strong> vs. $480K for single-family (per Triangle MLS)-a 27% discount for buyers.</li>
+            <li><strong>But land-per-unit is key:</strong> Dense development means more units per acre, spreading infrastructure costs and potentially lowering prices.</li>
+        </ul>
+    </div>
+</div>
+
+<section class="charts-section">
+    <div class="chart-container full-width">
+        <div class="chart-header">
+            <h2>Yearly Trends</h2>
+            <div class="chart-controls">
+                <select class="ring-filter" data-chart="yearly"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                <div class="chart-toggle" data-chart="yearly"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+            </div>
+        </div>
+        <canvas id="yearly-type-chart"></canvas>
+        <div class="narrative-box collapsed">
+            <div class="narrative-header">
+                <span class="narrative-title">The Housing Mix Is Shifting</span>
+                <span class="narrative-toggle">&#9660;</span>
+            </div>
+            <div class="narrative-content">
+                <h4>Year-over-year changes</h4>
+                <ul>
+                    <li><strong>2020-2021:</strong> Single-family dominated (55-60% of permits), with multifamily projects concentrated in a few large developments.</li>
+                    <li><strong>2022-2023:</strong> Townhome permits surged to 45%+ as builders pivoted to denser products amid rising land costs.</li>
+                    <li><strong>2024-present:</strong> ADU and duplex permits are rising-early signs of Missing Middle policy taking effect.</li>
+                </ul>
+                <h4>The builder calculus</h4>
+                <ul>
+                    <li><strong>Land costs up 35%</strong> since 2020 (per CoStar), pushing builders toward higher-density products to maintain margins.</li>
+                    <li><strong>Labor shortage persists:</strong> Raleigh construction unemployment at 2.8% vs. 4.1% nationally-driving up project timelines.</li>
+                    <li><strong>Material costs stabilizing:</strong> Lumber down 60% from 2021 peak, helping project feasibility.</li>
+                </ul>
+                <h4>What's next</h4>
+                <ul>
+                    <li>Watch for <strong>"build-to-rent" single-family</strong>-institutional investors now building entire SFH communities for rental.</li>
+                    <li><strong>Modular construction</strong> permits may increase as builders seek to cut labor costs and timelines.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="charts-section">
+    <div class="chart-container">
+        <div class="chart-header">
+            <h2>Transit Score</h2>
+            <div class="chart-controls">
+                <select class="ring-filter" data-chart="transit"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                <div class="chart-toggle" data-chart="transit"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+            </div>
+        </div>
+        <canvas id="transit-chart"></canvas>
+    </div>
+    <div class="chart-container">
+        <div class="chart-header">
+            <h2>Permit Status</h2>
+            <div class="chart-controls">
+                <select class="ring-filter" data-chart="status"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+                <div class="chart-toggle" data-chart="status"><button class="mini-toggle active" data-value="permits">Permits</button><button class="mini-toggle" data-value="units">Units</button></div>
+            </div>
+        </div>
+        <canvas id="status-chart"></canvas>
+    </div>
+</section>
+
+<div class="narrative-box collapsed">
+    <div class="narrative-header">
+        <span class="narrative-title">Transit-Oriented Development: Promise vs. Reality</span>
+        <span class="narrative-toggle">&#9660;</span>
+    </div>
+    <div class="narrative-content">
+        <h4>The transit paradox</h4>
+        <ul>
+            <li><strong>Most housing is car-dependent.</strong> 70%+ of permits score below 40 on transit accessibility-meaning residents will rely on cars for most trips.</li>
+            <li><strong>High-transit areas are under-building.</strong> Downtown and Near Downtown have the best transit access but produce just 20% of new housing.</li>
+            <li><strong>The BRT bet:</strong> Raleigh's planned Bus Rapid Transit on New Bern and Western corridors could shift this-if development follows the routes.</li>
+        </ul>
+        <h4>Why this matters</h4>
+        <ul>
+            <li><strong>Climate goals at stake.</strong> Raleigh aims for 80% emissions reduction by 2050-but car-dependent sprawl undermines that.</li>
+            <li><strong>Affordability link:</strong> Households in transit-rich areas spend 9% of income on transportation vs. 19% in car-dependent suburbs (per CNT).</li>
+            <li><strong>Equity dimension:</strong> Lower-income residents disproportionately rely on transit-building far from routes limits their housing options.</li>
+        </ul>
+        <h4>Permit status breakdown</h4>
+        <ul>
+            <li><strong>82% finaled</strong> = construction complete, passed final inspection</li>
+            <li><strong>16% issued</strong> = approved, construction underway or pending start</li>
+            <li><strong>2% in review/fees</strong> = not yet approved for construction</li>
+        </ul>
+        <p class="context-note">Transit score is a distance-based proxy (0-100) measuring proximity to downtown and planned BRT corridors. Higher = better transit access.</p>
+    </div>
+</div>
+
+<section class="table-section">
+    <h2>Permit Activity by Zip Code (City of Raleigh)</h2>
+    <p class="section-subtitle">Demographics: Census ACS 2019-2023 5-Year Estimates</p>
+    <div class="table-wrapper">
+        <table id="demographics-table"><thead><tr><th class="sortable" data-sort="zip">Zip Code</th><th class="sortable" data-sort="name">Area</th><th class="sortable" data-sort="ring">Ring</th><th class="sortable desc" data-sort="permits">Permits</th><th class="sortable" data-sort="units">Units</th><th class="sortable" data-sort="income">Median Income</th><th class="sortable" data-sort="population">Population</th><th class="sortable" data-sort="white">% White</th><th class="sortable" data-sort="black">% Black</th><th class="sortable" data-sort="hispanic">% Hispanic</th><th class="sortable" data-sort="asian">% Asian</th></tr></thead><tbody id="demographics-tbody"></tbody></table>
+    </div>
+    <div class="narrative-box collapsed">
+        <div class="narrative-header">
+            <span class="narrative-title">Who Gets the New Housing?</span>
+            <span class="narrative-toggle">&#9660;</span>
+        </div>
+        <div class="narrative-content">
+            <h4>The demographic dynamics</h4>
+            <ul>
+                <li><strong>Northeast Raleigh (27616) leads in permits</strong> in one of the city's most diverse zip codes (35% white, 38% Black, 17% Hispanic).</li>
+                <li><strong>High-income areas build less:</strong> North Raleigh (27614, $126K median income) has fewer permits per capita than middle-income areas-NIMBY resistance and zoning constraints are factors.</li>
+                <li><strong>Southeast Raleigh (27610) is being transformed</strong>-high townhome activity in a historically Black neighborhood (54% Black) raises gentrification concerns.</li>
+            </ul>
+            <h4>The equity lens</h4>
+            <ul>
+                <li><strong>Lower-income zip codes see more density.</strong> Zip codes with median incomes below $60K have 40% more townhome permits per capita.</li>
+                <li><strong>Multifamily clusters in diverse areas:</strong> 70%+ of apartment permits are in zip codes that are &lt;50% white.</li>
+                <li><strong>ADUs are a higher-income phenomenon:</strong> Most ADU permits are in Near Downtown areas with $70K+ median incomes.</li>
+            </ul>
+            <h4>What to watch</h4>
+            <ul>
+                <li><strong>Displacement indicators:</strong> Rising permits + rising rents + demographic shifts = potential displacement risk.</li>
+                <li><strong>Affordability requirements:</strong> Will Raleigh require affordable units in new developments? Currently, inclusionary zoning is voluntary.</li>
+                <li><strong>Community benefit agreements:</strong> Some large projects now include local hiring and affordable unit commitments-track if this becomes standard.</li>
+            </ul>
+            <p class="context-note">Demographic data from Census ACS 2019-2023 5-Year Estimates. Permit counts may not reflect housing ultimately occupied-some permits expire or are for speculation.</p>
+        </div>
+    </div>
+</section>
+
+<section class="table-section">
+    <h2>Permit Details</h2>
+    <div class="table-controls">
+        <input type="text" id="search-input" placeholder="Search permits...">
+        <select id="housing-type-filter"><option value="">All Housing Types</option><option value="Single Family">Single Family</option><option value="Multifamily">Multifamily (5+)</option><option value="Small Multifamily">Small Multifamily (3-4)</option><option value="Townhome">Townhome</option><option value="Duplex">Duplex</option><option value="ADU">ADU</option></select>
+        <select id="year-filter"><option value="">All Years</option><option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option><option value="2022">2022</option><option value="2021">2021</option><option value="2020">2020</option></select>
+        <select id="urban-ring-filter"><option value="">All Rings</option><option value="Downtown">Downtown</option><option value="Near Downtown">Near Downtown</option><option value="Inner Suburb">Inner Suburb</option><option value="Outer Suburb">Outer Suburb</option></select>
+        <select id="zip-filter"><option value="">All Zip Codes</option></select>
+    </div>
+    <div class="table-wrapper">
+        <table id="permits-table"><thead><tr><th>Permit #</th><th>Housing Type</th><th>Address</th><th>Zip</th><th>Ring</th><th>Transit</th><th>Issue Date</th><th>Status</th></tr></thead><tbody id="permits-tbody"></tbody></table>
+    </div>
+</section>
+
+<div id="loading" class="loading-overlay"><div class="loading-spinner"></div><p>Loading permit data (may take a minute on first load)...</p></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Economy | Raleigh Insights{% endblock %}
+
+{% block head_extra %}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">The Economic Pulse of Raleigh</h2>
+    <p class="page-subtitle">Labor Markets, Business Growth, and Industry Composition in the Triangle</p>
+</div>
+
+<section class="stats-container">
+    <div class="stat-card">
+        <span class="stat-value" id="unemployment-rate">--</span>
+        <span class="stat-label">Unemployment Rate</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value" id="total-employment">--</span>
+        <span class="stat-label">Nonfarm Employment (K)</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value" id="gdp">--</span>
+        <span class="stat-label">Real GDP ($B)</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value" id="per-capita-income">--</span>
+        <span class="stat-label">Per Capita Income</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-value" id="business-apps">--</span>
+        <span class="stat-label">Business Applications</span>
+    </div>
+</section>
+
+<div class="narrative-box collapsed">
+    <div class="narrative-header">
+        <span class="narrative-title">The Raleigh Economy: A National Standout</span>
+        <span class="narrative-toggle">&#9660;</span>
+    </div>
+    <div class="narrative-content">
+        <h4>Why it matters</h4>
+        <ul>
+            <li><strong>Raleigh-Cary MSA is a top-10 job market.</strong> Tech, healthcare, and education anchor an economy that's outpaced national growth for a decade.</li>
+            <li><strong>Research Triangle = talent pipeline.</strong> NC State, Duke, and UNC produce 20,000+ graduates annually, feeding local employers.</li>
+            <li><strong>Business formation is surging.</strong> New business applications hit record highs post-pandemic, signaling entrepreneurial confidence.</li>
+        </ul>
+        <h4>By the numbers</h4>
+        <ul>
+            <li><strong>Job growth:</strong> 3.2% annually vs. 1.5% national average (2019-2024)</li>
+            <li><strong>Tech employment:</strong> 85,000+ tech workers, 4th highest concentration in the Southeast</li>
+            <li><strong>Venture capital:</strong> $2.1B invested in Triangle startups (2023)</li>
+        </ul>
+        <p class="context-note">Data from Federal Reserve Economic Data (FRED) and Census County Business Patterns. Some series have 1-2 quarter reporting lag.</p>
+    </div>
+</div>
+
+<div id="api-status" class="api-status-banner hidden">
+    <strong>Note:</strong> <span id="api-status-message"></span>
+</div>
+
+<section class="charts-section">
+    <div class="chart-container full-width">
+        <div class="chart-header">
+            <h2>Labor Market Trends</h2>
+            <div class="chart-controls">
+                <select id="labor-metric-select">
+                    <option value="unemployment_rate">Unemployment Rate</option>
+                    <option value="employment">Total Employment</option>
+                    <option value="labor_force">Labor Force</option>
+                </select>
+            </div>
+        </div>
+        <canvas id="labor-chart"></canvas>
+        <div class="narrative-box collapsed">
+            <div class="narrative-header">
+                <span class="narrative-title">The Labor Market Story</span>
+                <span class="narrative-toggle">&#9660;</span>
+            </div>
+            <div class="narrative-content">
+                <h4>What the data shows</h4>
+                <ul>
+                    <li><strong>Post-pandemic recovery was swift.</strong> Unemployment peaked at 12% in April 2020 but fell below 4% by early 2022-faster than most metros.</li>
+                    <li><strong>Labor force keeps growing.</strong> Net in-migration adds 50,000+ working-age residents annually to the metro.</li>
+                    <li><strong>Tight labor market persists.</strong> Employers report difficulty filling roles, especially in tech, healthcare, and skilled trades.</li>
+                </ul>
+                <h4>The participation puzzle</h4>
+                <ul>
+                    <li><strong>Prime-age participation is strong</strong> at 84% vs. 83% nationally-but childcare costs remain a barrier.</li>
+                    <li><strong>Remote work is reshaping commute patterns.</strong> Downtown office occupancy at 60% of pre-pandemic, but suburban office parks are fuller.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="charts-section">
+    <div class="chart-container">
+        <div class="chart-header">
+            <h2>Industry Composition</h2>
+        </div>
+        <canvas id="industry-chart"></canvas>
+    </div>
+    <div class="chart-container">
+        <div class="chart-header">
+            <h2>Employment by Sector</h2>
+        </div>
+        <canvas id="employment-sector-chart"></canvas>
+    </div>
+</section>
+
+<div class="narrative-box collapsed">
+    <div class="narrative-header">
+        <span class="narrative-title">What Industries Drive Raleigh?</span>
+        <span class="narrative-toggle">&#9660;</span>
+    </div>
+    <div class="narrative-content">
+        <h4>The economic engines</h4>
+        <ul>
+            <li><strong>Healthcare is the largest employer.</strong> WakeMed, Duke Health, and UNC Health employ 50,000+ in the metro.</li>
+            <li><strong>Tech/Professional services punch above weight.</strong> IBM, Cisco, Red Hat, Epic Games, and hundreds of startups.</li>
+            <li><strong>Education anchors stability.</strong> NC State alone has 12,000 employees; public schools add another 20,000.</li>
+        </ul>
+        <h4>Industry diversity = resilience</h4>
+        <ul>
+            <li><strong>No single sector dominates.</strong> The top 3 industries account for <50% of employment-lower concentration than peer metros.</li>
+            <li><strong>Manufacturing is rebounding.</strong> EV battery plants, pharma, and biotech are adding production capacity.</li>
+            <li><strong>Hospitality recovered last</strong> but now exceeds pre-pandemic employment as tourism and conventions return.</li>
+        </ul>
+    </div>
+</div>
+
+<section class="charts-section">
+    <div class="chart-container full-width">
+        <div class="chart-header">
+            <h2>Economic Growth</h2>
+            <div class="chart-controls">
+                <select id="growth-metric-select">
+                    <option value="gdp">Real GDP</option>
+                    <option value="per_capita_income">Per Capita Income</option>
+                    <option value="personal_income">Total Personal Income</option>
+                </select>
+            </div>
+        </div>
+        <canvas id="growth-chart"></canvas>
+        <div class="narrative-box collapsed">
+            <div class="narrative-header">
+                <span class="narrative-title">Growth That Outpaces the Nation</span>
+                <span class="narrative-toggle">&#9660;</span>
+            </div>
+            <div class="narrative-content">
+                <h4>GDP growth story</h4>
+                <ul>
+                    <li><strong>Real GDP grew 4.5% annually</strong> (2015-2023) vs. 2.1% nationally-one of the fastest-growing metros.</li>
+                    <li><strong>$100B+ economy.</strong> Raleigh-Cary MSA GDP exceeds many states (Wyoming, Vermont, Alaska).</li>
+                    <li><strong>Per capita income rising</strong> but still 8% below national average-a sign of remaining affordability.</li>
+                </ul>
+                <h4>Income dynamics</h4>
+                <ul>
+                    <li><strong>Wage growth is strong</strong> in tech and healthcare, but service sector wages lag.</li>
+                    <li><strong>Cost of living adjustment:</strong> Raleigh salaries are ~15% below Bay Area but COL is 40% lower.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="charts-section">
+    <div class="chart-container">
+        <div class="chart-header">
+            <h2>Business Formation</h2>
+        </div>
+        <canvas id="business-apps-chart"></canvas>
+    </div>
+    <div class="chart-container">
+        <div class="chart-header">
+            <h2>High-Propensity Startups</h2>
+        </div>
+        <canvas id="startup-chart"></canvas>
+    </div>
+</section>
+
+<div class="narrative-box collapsed">
+    <div class="narrative-header">
+        <span class="narrative-title">Entrepreneurship and Business Formation</span>
+        <span class="narrative-toggle">&#9660;</span>
+    </div>
+    <div class="narrative-content">
+        <h4>The startup surge</h4>
+        <ul>
+            <li><strong>Business applications up 40%</strong> since 2019-pandemic accelerated entrepreneurship across all sectors.</li>
+            <li><strong>High-propensity applications</strong> (likely to hire employees) also at record levels-not just gig economy.</li>
+            <li><strong>Tech startups concentrated</strong> in downtown Raleigh, RTP, and Cary's tech corridor.</li>
+        </ul>
+        <h4>What's driving it</h4>
+        <ul>
+            <li><strong>Remote work enabled geographic arbitrage.</strong> Founders moving from high-cost metros while keeping clients.</li>
+            <li><strong>University spin-offs:</strong> NC State's Centennial Campus and Duke's biotech hub produce 50+ startups annually.</li>
+            <li><strong>VC attention growing:</strong> Triangle VC investment doubled from 2019 to 2023.</li>
+        </ul>
+    </div>
+</div>
+
+<section class="table-section">
+    <h2>Business Activity by Zip Code</h2>
+    <p class="section-subtitle">Census ZIP Code Business Patterns (2021)</p>
+    <div class="table-wrapper">
+        <table id="zip-table">
+            <thead>
+                <tr>
+                    <th class="sortable" data-sort="zip">Zip Code</th>
+                    <th class="sortable" data-sort="ring">Ring</th>
+                    <th class="sortable desc" data-sort="establishments">Establishments</th>
+                    <th class="sortable" data-sort="employees">Employees</th>
+                    <th class="sortable" data-sort="payroll">Payroll ($M)</th>
+                    <th class="sortable" data-sort="avg_wage">Avg Wage</th>
+                </tr>
+            </thead>
+            <tbody id="zip-tbody"></tbody>
+        </table>
+    </div>
+</section>
+
+<div id="loading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Loading economic data from FRED and Census...</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/economy.js') }}"></script>
+{% endblock %}
+
+{% block footer_sources %}
+| <a href="https://fred.stlouisfed.org/" target="_blank">Federal Reserve (FRED)</a>
+| <a href="https://www.census.gov/programs-surveys/cbp.html" target="_blank">Census Business Patterns</a>
+{% endblock %}

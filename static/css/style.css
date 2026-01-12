@@ -31,11 +31,120 @@ body {
 header {
     background: var(--burgundy);
     color: var(--cream);
-    padding: 2rem;
+    padding: 1.5rem 2rem 0 2rem;
     text-align: center;
     border-bottom: 4px solid var(--mustard);
 }
 
+/* Site Header */
+.site-header {
+    margin-bottom: 1rem;
+}
+
+.site-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.site-title a {
+    color: var(--cream);
+    text-decoration: none;
+}
+
+.site-title a:hover {
+    color: var(--mustard);
+}
+
+.site-subtitle {
+    font-family: 'Source Sans Pro', sans-serif;
+    opacity: 0.9;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 300;
+}
+
+/* Main Navigation */
+.main-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin-top: 1rem;
+}
+
+.nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    color: var(--cream);
+    text-decoration: none;
+    font-family: 'Source Sans Pro', sans-serif;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.8rem;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    margin-bottom: -4px;
+}
+
+.nav-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom-color: var(--dusty-rose);
+}
+
+.nav-tab.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-bottom-color: var(--mustard);
+}
+
+.nav-tab.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.nav-tab.disabled:hover {
+    background: transparent;
+    border-bottom-color: transparent;
+}
+
+.nav-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.nav-label {
+    font-size: 0.75rem;
+}
+
+/* Page Header (inside main) */
+.page-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--burgundy);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+    font-family: 'Source Sans Pro', sans-serif;
+    color: var(--terracotta);
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+}
+
+/* Legacy header styles for backwards compatibility */
 header h1 {
     font-family: 'Playfair Display', Georgia, serif;
     font-size: 2.2rem;
@@ -413,6 +522,12 @@ footer a {
     font-weight: 600;
 }
 
+.footer-credit {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
 /* Leaflet Popup */
 .leaflet-popup-content {
     font-family: 'Source Sans Pro', sans-serif;
@@ -437,6 +552,30 @@ footer a {
 
     header h1 {
         font-size: 1.5rem;
+    }
+
+    .site-title {
+        font-size: 1.5rem;
+    }
+
+    .main-nav {
+        gap: 0;
+    }
+
+    .nav-tab {
+        padding: 0.5rem 0.75rem;
+    }
+
+    .nav-icon {
+        font-size: 1.2rem;
+    }
+
+    .nav-label {
+        font-size: 0.65rem;
+    }
+
+    .page-title {
+        font-size: 1.3rem;
     }
 
     .stat-value {
@@ -714,4 +853,22 @@ th.sortable.desc::after {
     margin-top: 0.75rem;
     padding-top: 0.75rem;
     border-top: 1px solid var(--ochre);
+}
+
+/* API Status Banner */
+.api-status-banner {
+    background: var(--peach);
+    border: 2px solid var(--ochre);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--burgundy);
+}
+
+.api-status-banner.hidden {
+    display: none;
+}
+
+.api-status-banner strong {
+    color: var(--terracotta);
 }

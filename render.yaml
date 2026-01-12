@@ -1,9 +1,13 @@
 services:
   - type: web
-    name: raleigh-permits
-    runtime: python
+    name: raleigh-insights
+    env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
-        value: "3.11"
+        value: 3.12.0
+      - key: FRED_API_KEY
+        sync: false
+      - key: CENSUS_API_KEY
+        sync: false

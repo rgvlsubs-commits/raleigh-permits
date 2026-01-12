@@ -984,21 +984,21 @@ function filterPermits() {
 
 // Load residential permit data (new endpoint)
 async function loadResidentialData() {
-    const response = await fetch('/api/permits/residential');
+    const response = await fetch('/housing/api/permits/residential');
     if (!response.ok) throw new Error('Failed to fetch residential permits');
     return response.json();
 }
 
 // Load analytics data
 async function loadAnalyticsData() {
-    const response = await fetch('/api/analytics');
+    const response = await fetch('/housing/api/analytics');
     if (!response.ok) throw new Error('Failed to fetch analytics');
     return response.json();
 }
 
 // Load demographic data
 async function loadDemographicData() {
-    const response = await fetch('/api/demographics');
+    const response = await fetch('/housing/api/demographics');
     if (!response.ok) throw new Error('Failed to fetch demographics');
     return response.json();
 }

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Raleigh Insights{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="site-header">
+            <h1 class="site-title"><a href="/">Raleigh Insights</a></h1>
+            <p class="site-subtitle">Data-Driven Analysis of the City of Oaks</p>
+        </div>
+        <nav class="main-nav">
+            <a href="{{ url_for('housing.index') }}" class="nav-tab {% if active_tab == 'housing' %}active{% endif %}">
+                <span class="nav-icon">&#127968;</span>
+                <span class="nav-label">Housing</span>
+            </a>
+            <a href="{{ url_for('economy.index') }}" class="nav-tab {% if active_tab == 'economy' %}active{% endif %}">
+                <span class="nav-icon">&#128200;</span>
+                <span class="nav-label">Economy</span>
+            </a>
+            <a href="#" class="nav-tab disabled {% if active_tab == 'culture' %}active{% endif %}" title="Coming soon">
+                <span class="nav-icon">&#127869;</span>
+                <span class="nav-label">Culture</span>
+            </a>
+            <a href="#" class="nav-tab disabled {% if active_tab == 'green' %}active{% endif %}" title="Coming soon">
+                <span class="nav-icon">&#127795;</span>
+                <span class="nav-label">Green Spaces</span>
+            </a>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>Data sources:
+            <a href="https://data-ral.opendata.arcgis.com/" target="_blank">City of Raleigh Open Data</a> |
+            <a href="https://www.census.gov/programs-surveys/acs" target="_blank">US Census Bureau ACS</a>
+            {% block footer_sources %}{% endblock %}
+        </p>
+        <p class="footer-credit">A Raleigh Insights Project</p>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

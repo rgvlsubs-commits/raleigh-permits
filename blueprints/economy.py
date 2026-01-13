@@ -268,7 +268,7 @@ def fetch_census_cbp_county():
                     "establishments": estab,
                     "employees": emp,
                     "payroll": payroll,
-                    "avg_wage": round(payroll / emp) if emp > 0 else 0
+                    "avg_wage": round(payroll * 1000 / emp) if emp > 0 else 0  # Payroll is in $1000s
                 }
 
             # Total row (NAICS = "00")

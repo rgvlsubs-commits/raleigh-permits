@@ -872,3 +872,229 @@ th.sortable.desc::after {
 .api-status-banner strong {
     color: var(--terracotta);
 }
+
+/* Geographic Section Headers - Economy Page */
+.geo-section {
+    margin-bottom: 1.5rem;
+}
+
+.geo-header {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--cream);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--burgundy);
+}
+
+.national-section .geo-header {
+    background: var(--terracotta);
+}
+
+.raleigh-section .geo-header {
+    background: var(--burgundy);
+}
+
+.nc-section .geo-header {
+    background: var(--ochre);
+    color: var(--burgundy);
+}
+
+/* Stat Card Variants */
+.stat-card.national {
+    border-color: var(--terracotta);
+    box-shadow: 4px 4px 0 var(--salmon);
+}
+
+.stat-card.national::before {
+    border-color: var(--salmon);
+}
+
+.stat-card.national .stat-value {
+    color: var(--terracotta);
+}
+
+.stat-card.nc {
+    border-color: var(--ochre);
+    box-shadow: 4px 4px 0 var(--mustard);
+}
+
+.stat-card.nc::before {
+    border-color: var(--mustard);
+}
+
+.stat-card.nc .stat-value {
+    color: var(--ochre);
+}
+
+/* Smaller stat cards for national/NC sections */
+.national-stats .stat-card,
+.nc-stats .stat-card {
+    padding: 1rem;
+}
+
+.national-stats .stat-value,
+.nc-stats .stat-value {
+    font-size: 2rem;
+}
+
+.national-stats .stat-label,
+.nc-stats .stat-label {
+    font-size: 0.75rem;
+}
+
+/* Comparison indicator */
+.stat-comparison {
+    display: block;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    font-weight: 600;
+}
+
+.stat-comparison.positive {
+    color: var(--sage);
+}
+
+.stat-comparison.negative {
+    color: var(--salmon);
+}
+
+.stat-comparison.neutral {
+    color: var(--terracotta);
+}
+
+/* Metro Comparison Table Styles */
+.comparison-table-section table {
+    table-layout: fixed;
+}
+
+.comparison-table-section th.metro-col,
+.comparison-table-section td.metro-col {
+    text-align: center;
+    width: 15%;
+}
+
+.comparison-table-section th.raleigh-col,
+.comparison-table-section td.raleigh-col {
+    background: var(--peach);
+    font-weight: 700;
+}
+
+.comparison-table-section th.raleigh-col {
+    background: var(--burgundy);
+    color: var(--cream);
+}
+
+.comparison-table-section tbody td:first-child {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+}
+
+/* =============================================================================
+   EMBEDDED METRO COMPARISON (within Economy tab)
+   ============================================================================= */
+.comparison-section {
+    margin: 2rem;
+}
+
+.comparison-section .narrative-box {
+    border: 2px solid var(--burgundy);
+}
+
+.comparison-section .narrative-content {
+    padding: 1.5rem;
+}
+
+.comparison-intro {
+    font-style: italic;
+    color: var(--terracotta);
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+}
+
+.comparison-table-wrapper {
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+}
+
+#metro-comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    table-layout: fixed;
+}
+
+#metro-comparison-table th,
+#metro-comparison-table td {
+    padding: 0.75rem 0.5rem;
+    border: 1px solid var(--dusty-rose);
+    text-align: center;
+}
+
+#metro-comparison-table th {
+    background: var(--burgundy);
+    color: var(--cream);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.03em;
+}
+
+#metro-comparison-table th:first-child {
+    text-align: left;
+    width: 25%;
+}
+
+#metro-comparison-table td:first-child {
+    text-align: left;
+    font-weight: 600;
+}
+
+#metro-comparison-table .raleigh-col {
+    background: var(--peach);
+    font-weight: 700;
+}
+
+#metro-comparison-table th.raleigh-col {
+    background: var(--mustard);
+    color: var(--burgundy);
+}
+
+.comparison-chart-container {
+    margin: 1.5rem 0;
+    height: 300px;
+}
+
+.comparison-chart-container h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: var(--burgundy);
+    margin-bottom: 0.75rem;
+}
+
+.comparison-insights {
+    background: var(--cream);
+    border-left: 4px solid var(--sage);
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.comparison-insights h4 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: var(--burgundy);
+    margin-bottom: 0.5rem;
+}
+
+.comparison-insights ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.comparison-insights li {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}

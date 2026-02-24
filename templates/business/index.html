@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}New Businesses | Raleigh Insights{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+<style>
+    .year-slider-container {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 10px 0;
+        padding: 10px 15px;
+        background: var(--cream);
+        border-radius: 8px;
+    }
+    .year-slider-container label {
+        font-weight: 600;
+        color: var(--burgundy);
+        white-space: nowrap;
+    }
+    .year-slider {
+        flex: 1;
+        -webkit-appearance: none;
+        height: 8px;
+        border-radius: 4px;
+        background: var(--dusty-rose);
+        outline: none;
+    }
+    .year-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--burgundy);
+        cursor: pointer;
+    }
+    .year-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--burgundy);
+        cursor: pointer;
+        border: none;
+    }
+    .year-display {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--burgundy);
+        min-width: 90px;
+        text-align: center;
+    }
+    .chart-toggle {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .chart-toggle button {
+        padding: 8px 16px;
+        border: 2px solid var(--burgundy);
+        background: var(--cream);
+        color: var(--burgundy);
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .chart-toggle button.active {
+        background: var(--burgundy);
+        color: var(--cream);
+    }
+    .chart-toggle button:hover:not(.active) {
+        background: var(--dusty-rose);
+    }
+    /* Category toggle buttons */
+    #category-toggle {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    #category-toggle .toggle-btn {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+    }
+    /* Neighborhood tables */
+    .neighborhood-section {
+        margin-bottom: 30px;
+    }
+    .neighborhood-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: var(--burgundy);
+        color: var(--cream);
+        border-radius: 8px 8px 0 0;
+        cursor: pointer;
+    }
+    .neighborhood-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    .neighborhood-stats {
+        display: flex;
+        gap: 20px;
+        font-size: 0.9rem;
+    }
+    .neighborhood-content {
+        border: 2px solid var(--burgundy);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        overflow: hidden;
+    }
+    .neighborhood-content.collapsed {
+        display: none;
+    }
+    .neighborhood-content table {
+        margin: 0;
+        border: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">New Businesses</h2>
+    <p class="page-subtitle">Where New Offices, Stores, and Facilities Are Opening in Raleigh</p>
+</div>
+
+<!-- KEY METRICS -->
+<section class="geo-section business-section">
+    <h3 class="geo-header">New Business Construction Since 2020</h3>
+    <div class="stats-container">
+        <div class="stat-card">
+            <span class="stat-value" id="total-permits">--</span>
+            <span class="stat-label">New Business Buildings</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="total-investment">--</span>
+            <span class="stat-label">Construction Value</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="pipeline-total">--</span>
+            <span class="stat-label">In Pipeline</span>
+        </div>
+    </div>
+</section>
+
+<!-- INTERACTIVE MAP -->
+<section class="map-section">
+    <div class="map-header">
+        <h2>New Business Locations</h2>
+    </div>
+    <div class="view-toggle-container">
+        <span class="view-toggle-label">Category:</span>
+        <div class="view-toggle" id="category-toggle">
+            <button class="toggle-btn category-btn active" data-category="all">All</button>
+            <!-- Other buttons populated by JS -->
+        </div>
+    </div>
+    <div class="year-slider-container">
+        <label>Filter by Year:</label>
+        <input type="range" id="year-slider" class="year-slider" min="2020" max="2025" value="2020" step="1">
+        <span class="year-display" id="year-display">All Years</span>
+    </div>
+    <div id="map"></div>
+</section>
+
+<!-- COMBINED TREND CHART -->
+<section class="charts-section">
+    <div class="chart-container full-width">
+        <div class="chart-header">
+            <h2>Activity Trends</h2>
+            <div class="chart-toggle">
+                <button id="toggle-permits" class="active">Permit Count</button>
+                <button id="toggle-investment">Investment Value</button>
+            </div>
+        </div>
+        <canvas id="trend-chart"></canvas>
+    </div>
+</section>
+
+
+<div class="narrative-box collapsed">
+    <div class="narrative-header">
+        <span class="narrative-title">Understanding the Data</span>
+        <span class="narrative-toggle">&#9660;</span>
+    </div>
+    <div class="narrative-content">
+        <h4>What's included</h4>
+        <ul>
+            <li><strong>New business buildings only</strong> - brand new construction where businesses will operate.</li>
+            <li><strong>Office</strong> - Banks, professional buildings, corporate offices</li>
+            <li><strong>Retail</strong> - Stores, shopping centers, mercantile buildings</li>
+            <li><strong>Industrial</strong> - Warehouses, manufacturing, distribution centers</li>
+            <li><strong>Entertainment</strong> - Recreation facilities, amusement venues</li>
+            <li><strong>Hospitality</strong> - Hotels, motels, tourist accommodations</li>
+            <li><strong>Healthcare</strong> - Medical offices, clinics, hospitals</li>
+            <li><strong>Institutional</strong> - Churches, schools, public facilities</li>
+        </ul>
+        <h4>What's excluded</h4>
+        <ul>
+            <li><strong>Residential</strong> - Apartments, condos, and housing (see Housing page)</li>
+            <li><strong>Renovations</strong> - Alterations to existing buildings</li>
+            <li><strong>Infrastructure</strong> - Parking garages, sheds, fences</li>
+        </ul>
+        <p class="context-note">Data from City of Raleigh Building Permits. Shows new construction from 2020 onwards.</p>
+    </div>
+</div>
+
+<!-- PROJECTS BY NEIGHBORHOOD -->
+<section class="table-section">
+    <h2>Projects by Neighborhood</h2>
+    <p class="section-subtitle">New business buildings grouped by area (filtered by year and category above)</p>
+    <div id="neighborhood-tables"></div>
+</section>
+
+<div id="loading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Loading commercial development data...</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<script src="{{ url_for('static', filename='js/business.js') }}"></script>
+{% endblock %}
+
+{% block footer_sources %}
+| <a href="https://data.raleighnc.gov/" target="_blank">Raleigh Open Data</a>
+{% endblock %}

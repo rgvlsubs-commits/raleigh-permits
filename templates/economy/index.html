@@ -8,51 +8,184 @@
 {% block content %}
 <div class="page-header">
     <h2 class="page-title">The Economic Pulse of Raleigh</h2>
-    <p class="page-subtitle">Labor Markets, Business Growth, and Industry Composition in the Triangle</p>
+    <p class="page-subtitle">National Context, Regional Performance, and Local Industry Dynamics</p>
 </div>
 
-<section class="stats-container">
-    <div class="stat-card">
-        <span class="stat-value" id="unemployment-rate">--</span>
-        <span class="stat-label">Unemployment Rate</span>
+<!-- NATIONAL INDICATORS - Headline Context -->
+<section class="geo-section national-section">
+    <h3 class="geo-header">U.S. Economy</h3>
+    <div class="stats-container national-stats">
+        <div class="stat-card national">
+            <span class="stat-value" id="us-gdp-growth">--</span>
+            <span class="stat-label">Real GDP Growth (YoY)</span>
+        </div>
+        <div class="stat-card national">
+            <span class="stat-value" id="us-unemployment">--</span>
+            <span class="stat-label">Unemployment Rate</span>
+        </div>
+        <div class="stat-card national">
+            <span class="stat-value" id="us-wage-growth">--</span>
+            <span class="stat-label">Real Wage Growth (YoY)</span>
+        </div>
+        <div class="stat-card national">
+            <span class="stat-value" id="us-inflation">--</span>
+            <span class="stat-label">Core PCE Inflation (YoY)</span>
+        </div>
     </div>
-    <div class="stat-card">
-        <span class="stat-value" id="total-employment">--</span>
-        <span class="stat-label">Nonfarm Employment (K)</span>
+</section>
+
+<!-- RALEIGH MSA INDICATORS - Main Focus -->
+<section class="geo-section raleigh-section">
+    <h3 class="geo-header">Raleigh-Cary MSA</h3>
+    <div class="stats-container raleigh-stats">
+        <div class="stat-card">
+            <span class="stat-value" id="unemployment-rate">--</span>
+            <span class="stat-label">Unemployment Rate</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="total-employment">--</span>
+            <span class="stat-label">Nonfarm Employment (K)</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="gdp">--</span>
+            <span class="stat-label">Real GDP ($B)</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="per-capita-income">--</span>
+            <span class="stat-label">Per Capita Income</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="home-price-growth">--</span>
+            <span class="stat-label">Home Price Growth (YoY)</span>
+        </div>
     </div>
-    <div class="stat-card">
-        <span class="stat-value" id="gdp">--</span>
-        <span class="stat-label">Real GDP ($B)</span>
+</section>
+
+<!-- METRO COMPARISON - Collapsible Peer Comparison -->
+<section class="comparison-section">
+    <div class="narrative-box" id="metro-comparison-box">
+        <div class="narrative-header">
+            <span class="narrative-title">How Does Raleigh Compare to Peer Metros?</span>
+            <span class="narrative-toggle">&#9660;</span>
+        </div>
+        <div class="narrative-content comparison-content">
+            <p class="comparison-intro">Comparing Raleigh-Cary against Nashville, Austin, Charlotte, and Denver - similar high-growth metros competing for talent and investment.</p>
+
+            <div class="table-wrapper comparison-table-wrapper">
+                <table id="metro-comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th class="metro-col raleigh-col">Raleigh</th>
+                            <th class="metro-col">Nashville</th>
+                            <th class="metro-col">Austin</th>
+                            <th class="metro-col">Charlotte</th>
+                            <th class="metro-col">Denver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Unemployment Rate</td>
+                            <td class="raleigh-col" id="cmp-raleigh-unemployment">--</td>
+                            <td id="cmp-nashville-unemployment">--</td>
+                            <td id="cmp-austin-unemployment">--</td>
+                            <td id="cmp-charlotte-unemployment">--</td>
+                            <td id="cmp-denver-unemployment">--</td>
+                        </tr>
+                        <tr>
+                            <td>Job Growth (YoY)</td>
+                            <td class="raleigh-col" id="cmp-raleigh-job-growth">--</td>
+                            <td id="cmp-nashville-job-growth">--</td>
+                            <td id="cmp-austin-job-growth">--</td>
+                            <td id="cmp-charlotte-job-growth">--</td>
+                            <td id="cmp-denver-job-growth">--</td>
+                        </tr>
+                        <tr>
+                            <td>Home Price Growth (YoY)</td>
+                            <td class="raleigh-col" id="cmp-raleigh-home-price">--</td>
+                            <td id="cmp-nashville-home-price">--</td>
+                            <td id="cmp-austin-home-price">--</td>
+                            <td id="cmp-charlotte-home-price">--</td>
+                            <td id="cmp-denver-home-price">--</td>
+                        </tr>
+                        <tr>
+                            <td>Per Capita Income</td>
+                            <td class="raleigh-col" id="cmp-raleigh-income">--</td>
+                            <td id="cmp-nashville-income">--</td>
+                            <td id="cmp-austin-income">--</td>
+                            <td id="cmp-charlotte-income">--</td>
+                            <td id="cmp-denver-income">--</td>
+                        </tr>
+                        <tr>
+                            <td>Real GDP</td>
+                            <td class="raleigh-col" id="cmp-raleigh-gdp">--</td>
+                            <td id="cmp-nashville-gdp">--</td>
+                            <td id="cmp-austin-gdp">--</td>
+                            <td id="cmp-charlotte-gdp">--</td>
+                            <td id="cmp-denver-gdp">--</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="comparison-chart-container">
+                <h4>Unemployment Rate Trend</h4>
+                <canvas id="metro-unemployment-chart"></canvas>
+            </div>
+
+            <div class="comparison-insights">
+                <h4>Key Takeaways</h4>
+                <ul>
+                    <li><strong>Labor market strength:</strong> Raleigh consistently has lower unemployment than peers</li>
+                    <li><strong>Balanced growth:</strong> Strong job creation without overheating</li>
+                    <li><strong>Affordability edge:</strong> Home prices rising slower than Austin/Nashville</li>
+                    <li><strong>Watch areas:</strong> Per capita income trails Denver and Austin; Charlotte is a direct NC competitor</li>
+                </ul>
+            </div>
+
+            <p class="context-note">Peer metros selected for similar growth trajectory, knowledge economy focus, and quality-of-life positioning. Data from FRED.</p>
+        </div>
     </div>
-    <div class="stat-card">
-        <span class="stat-value" id="per-capita-income">--</span>
-        <span class="stat-label">Per Capita Income</span>
-    </div>
-    <div class="stat-card">
-        <span class="stat-value" id="business-apps">--</span>
-        <span class="stat-label">Business Applications</span>
+</section>
+
+<!-- NC STATE INDICATORS - State Context -->
+<section class="geo-section nc-section">
+    <h3 class="geo-header">North Carolina</h3>
+    <div class="stats-container nc-stats">
+        <div class="stat-card nc">
+            <span class="stat-value" id="nc-unemployment">--</span>
+            <span class="stat-label">Unemployment Rate</span>
+        </div>
+        <div class="stat-card nc">
+            <span class="stat-value" id="nc-employment">--</span>
+            <span class="stat-label">Nonfarm Employment (M)</span>
+        </div>
+        <div class="stat-card nc">
+            <span class="stat-value" id="nc-income">--</span>
+            <span class="stat-label">Per Capita Income</span>
+        </div>
     </div>
 </section>
 
 <div class="narrative-box collapsed">
     <div class="narrative-header">
-        <span class="narrative-title">The Raleigh Economy: A National Standout</span>
+        <span class="narrative-title">Reading the Data: National to Local</span>
         <span class="narrative-toggle">&#9660;</span>
     </div>
     <div class="narrative-content">
-        <h4>Why it matters</h4>
+        <h4>Why three levels matter</h4>
         <ul>
-            <li><strong>Raleigh-Cary MSA is a top-10 job market.</strong> Tech, healthcare, and education anchor an economy that's outpaced national growth for a decade.</li>
-            <li><strong>Research Triangle = talent pipeline.</strong> NC State, Duke, and UNC produce 20,000+ graduates annually, feeding local employers.</li>
-            <li><strong>Business formation is surging.</strong> New business applications hit record highs post-pandemic, signaling entrepreneurial confidence.</li>
+            <li><strong>National conditions set the baseline.</strong> Fed policy, inflation, and GDP growth affect all markets. Watch for recession signals.</li>
+            <li><strong>Raleigh typically outperforms.</strong> MSA unemployment runs 0.5-1% below national; job growth is 2x the national rate.</li>
+            <li><strong>NC provides regional context.</strong> State-level data reveals whether Raleigh is driving state growth or benefiting from broader trends.</li>
         </ul>
-        <h4>By the numbers</h4>
+        <h4>Key comparisons to watch</h4>
         <ul>
-            <li><strong>Job growth:</strong> 3.2% annually vs. 1.5% national average (2019-2024)</li>
-            <li><strong>Tech employment:</strong> 85,000+ tech workers, 4th highest concentration in the Southeast</li>
-            <li><strong>Venture capital:</strong> $2.1B invested in Triangle startups (2023)</li>
+            <li><strong>Unemployment gap:</strong> Raleigh vs. US and NC-when gaps narrow, local advantage is shrinking.</li>
+            <li><strong>Income convergence:</strong> Raleigh income rising toward national average signals maturing economy.</li>
+            <li><strong>Job growth differential:</strong> Raleigh consistently adds jobs faster than state and nation.</li>
         </ul>
-        <p class="context-note">Data from Federal Reserve Economic Data (FRED) and Census County Business Patterns. Some series have 1-2 quarter reporting lag.</p>
+        <p class="context-note">Data from Federal Reserve Economic Data (FRED). National GDP is quarterly; unemployment is monthly; income is annual. Some series have 1-2 month reporting lag.</p>
     </div>
 </div>
 
@@ -166,39 +299,79 @@
     </div>
 </section>
 
+<!-- GLOBAL TRADE SECTION -->
+<section class="geo-section trade-section">
+    <h3 class="geo-header">Global Trade</h3>
+    <p class="section-subtitle">Raleigh's Connection to the World Economy</p>
+    <div class="stats-container trade-stats">
+        <div class="stat-card">
+            <span class="stat-value" id="total-exports">--</span>
+            <span class="stat-label">Total Exports (2023)</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="export-growth">--</span>
+            <span class="stat-label">YoY Growth</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="triangle-exports">--</span>
+            <span class="stat-label">Triangle Region Total</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" id="nc-share">--</span>
+            <span class="stat-label">Share of NC Exports</span>
+        </div>
+    </div>
+</section>
+
 <section class="charts-section">
     <div class="chart-container">
         <div class="chart-header">
-            <h2>Business Formation</h2>
+            <h2>Top Export Industries</h2>
         </div>
-        <canvas id="business-apps-chart"></canvas>
+        <canvas id="export-industries-chart"></canvas>
     </div>
     <div class="chart-container">
         <div class="chart-header">
-            <h2>High-Propensity Startups</h2>
+            <h2>Top Destination Countries</h2>
         </div>
-        <canvas id="startup-chart"></canvas>
+        <canvas id="export-destinations-chart"></canvas>
+    </div>
+</section>
+
+<section class="charts-section">
+    <div class="chart-container full-width">
+        <div class="chart-header">
+            <h2>Export Trend</h2>
+        </div>
+        <canvas id="export-trend-chart"></canvas>
     </div>
 </section>
 
 <div class="narrative-box collapsed">
     <div class="narrative-header">
-        <span class="narrative-title">Entrepreneurship and Business Formation</span>
+        <span class="narrative-title">Raleigh in the Global Economy</span>
         <span class="narrative-toggle">&#9660;</span>
     </div>
     <div class="narrative-content">
-        <h4>The startup surge</h4>
+        <h4>Why trade matters</h4>
         <ul>
-            <li><strong>Business applications up 40%</strong> since 2019-pandemic accelerated entrepreneurship across all sectors.</li>
-            <li><strong>High-propensity applications</strong> (likely to hire employees) also at record levels-not just gig economy.</li>
-            <li><strong>Tech startups concentrated</strong> in downtown Raleigh, RTP, and Cary's tech corridor.</li>
+            <li><strong>$6 billion in exports</strong> makes Raleigh a top-50 metro exporter nationally.</li>
+            <li><strong>Pharmaceuticals dominate</strong> (30% of exports) - GSK, Biogen, and 200+ life science firms drive global sales.</li>
+            <li><strong>Tech hardware growing</strong> - computer and electronics exports up 15% since 2020.</li>
         </ul>
-        <h4>What's driving it</h4>
+        <h4>Key trading partners</h4>
         <ul>
-            <li><strong>Remote work enabled geographic arbitrage.</strong> Founders moving from high-cost metros while keeping clients.</li>
-            <li><strong>University spin-offs:</strong> NC State's Centennial Campus and Duke's biotech hub produce 50+ startups annually.</li>
-            <li><strong>VC attention growing:</strong> Triangle VC investment doubled from 2019 to 2023.</li>
+            <li><strong>NAFTA/USMCA partners (Canada, Mexico)</strong> account for 32% of exports - supply chain integration is deep.</li>
+            <li><strong>China</strong> is the #2 destination despite trade tensions - pharma and tech demand remains strong.</li>
+            <li><strong>Europe (France, Germany, UK)</strong> is growing - pharmaceutical exports to EU up 20% since 2021.</li>
         </ul>
+        <h4>Looking ahead</h4>
+        <ul>
+            <li><strong>EV supply chain</strong> - new battery plants will boost machinery and equipment exports.</li>
+            <li><strong>Biotech expansion</strong> - gene therapy and vaccine production scaling for global markets.</li>
+            <li><strong>RDU international flights</strong> - direct routes to Paris and London support business travel and trade relationships.</li>
+        </ul>
+        <p class="context-note">Data from <a href="https://www.trade.gov/ita-metropolitan-export-series" target="_blank">ITA Metropolitan Export Series</a>. Export values are for goods only; services exports (substantial in tech/consulting) are not included.</p>
     </div>
 </div>
 
@@ -236,4 +409,5 @@
 {% block footer_sources %}
 | <a href="https://fred.stlouisfed.org/" target="_blank">Federal Reserve (FRED)</a>
 | <a href="https://www.census.gov/programs-surveys/cbp.html" target="_blank">Census Business Patterns</a>
+| <a href="https://www.trade.gov/ita-metropolitan-export-series" target="_blank">ITA Metro Exports</a>
 {% endblock %}

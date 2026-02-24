@@ -33,27 +33,91 @@ RALEIGH_MSA = "39580"
 WAKE_COUNTY_FIPS = "37183"
 
 # =============================================================================
-# FRED SERIES DEFINITIONS
-# Comprehensive economic indicators for Raleigh MSA
+# FRED SERIES DEFINITIONS - THREE GEOGRAPHIC LEVELS
 # =============================================================================
-FRED_SERIES = {
+
+# NATIONAL INDICATORS (headline metrics at top of dashboard)
+NATIONAL_SERIES = {
+    "real_gdp": {
+        "series_id": "GDPC1",  # Real GDP in billions of chained 2017 dollars
+        "name": "Real GDP",
+        "unit": "billions $",
+        "frequency": "quarterly",
+        "description": "Real Gross Domestic Product"
+    },
+    "unemployment_rate": {
+        "series_id": "UNRATE",
+        "name": "Unemployment Rate",
+        "unit": "%",
+        "frequency": "monthly",
+        "description": "Civilian unemployment rate"
+    },
+    "real_earnings": {
+        "series_id": "LES1252881600Q",  # Real median weekly earnings
+        "name": "Real Median Weekly Earnings",
+        "unit": "$",
+        "frequency": "quarterly",
+        "description": "Inflation-adjusted weekly earnings"
+    },
+    "core_pce": {
+        "series_id": "PCEPILFE",  # Core PCE price index
+        "name": "Core PCE Inflation",
+        "unit": "index",
+        "frequency": "monthly",
+        "description": "Core Personal Consumption Expenditures price index"
+    },
+}
+
+# NC STATE-LEVEL INDICATORS
+NC_STATE_SERIES = {
+    "unemployment_rate": {
+        "series_id": "NCUR",
+        "name": "NC Unemployment Rate",
+        "unit": "%",
+        "category": "labor"
+    },
+    "employment": {
+        "series_id": "NCNA",
+        "name": "NC Nonfarm Employment",
+        "unit": "thousands",
+        "category": "labor"
+    },
+    "labor_force": {
+        "series_id": "NCLF",
+        "name": "NC Labor Force",
+        "unit": "thousands",
+        "category": "labor"
+    },
+    "personal_income": {
+        "series_id": "NCPCPI",
+        "name": "NC Per Capita Personal Income",
+        "unit": "$",
+        "category": "growth"
+    },
+}
+
+# RALEIGH MSA INDICATORS (main dashboard content)
+RALEIGH_SERIES = {
     # Labor Market (Raleigh-Cary MSA)
     "unemployment_rate": {
         "series_id": "RALE537URN",
         "name": "Unemployment Rate",
         "unit": "%",
+        "frequency": "monthly",
         "category": "labor"
     },
     "labor_force": {
         "series_id": "RALE537LFN",
         "name": "Labor Force",
         "unit": "persons",
+        "frequency": "monthly",
         "category": "labor"
     },
     "employment": {
         "series_id": "RALE537NAN",
         "name": "All Employees (Nonfarm)",
         "unit": "thousands",
+        "frequency": "monthly",
         "category": "labor"
     },
 
@@ -62,33 +126,22 @@ FRED_SERIES = {
         "series_id": "NGMP39580",
         "name": "GDP (Nominal)",
         "unit": "millions $",
+        "frequency": "annual",
         "category": "growth"
     },
     "real_gdp": {
         "series_id": "RGMP39580",
         "name": "Real GDP",
         "unit": "millions $",
+        "frequency": "annual",
         "category": "growth"
     },
-    "personal_income": {
-        "series_id": "PIPC39580",
+    "per_capita_income": {
+        "series_id": "RALE537PCPI",
         "name": "Per Capita Personal Income",
         "unit": "$",
+        "frequency": "annual",
         "category": "growth"
-    },
-
-    # Business & Investment
-    "business_applications": {
-        "series_id": "BUSAPPWNSARA39580",
-        "name": "Business Applications",
-        "unit": "applications",
-        "category": "investment"
-    },
-    "high_propensity_applications": {
-        "series_id": "HBAWNSARA39580",
-        "name": "High-Propensity Business Applications",
-        "unit": "applications",
-        "category": "investment"
     },
 
     # Housing Market
@@ -96,8 +149,117 @@ FRED_SERIES = {
         "series_id": "ATNHPIUS39580Q",
         "name": "House Price Index",
         "unit": "index",
+        "frequency": "quarterly",
         "category": "housing"
     },
+}
+
+# Legacy alias for backward compatibility
+FRED_SERIES = RALEIGH_SERIES
+
+# =============================================================================
+# METRO COMPARISON CONFIGURATION
+# Peer metros for comparing Raleigh against similar growth cities
+# =============================================================================
+METRO_CONFIG = {
+    "raleigh": {
+        "name": "Raleigh",
+        "full_name": "Raleigh-Cary, NC",
+        "msa_code": "39580",
+        "color": "#722F37",  # Burgundy - primary/highlighted
+        "series": {
+            "unemployment": "RALE537URN",
+            "employment": "RALE537NAN",
+            "real_gdp": "RGMP39580",
+            "per_capita_income": "RALE537PCPI",
+            "home_price_index": "ATNHPIUS39580Q"
+        }
+    },
+    "nashville": {
+        "name": "Nashville",
+        "full_name": "Nashville-Davidson, TN",
+        "msa_code": "34980",
+        "color": "#E9B44C",  # Mustard
+        "series": {
+            "unemployment": "NASH947URN",
+            "employment": "NASH947NA",
+            "real_gdp": "RGMP34980",
+            "per_capita_income": "NASH947PCPI",
+            "home_price_index": "ATNHPIUS34980Q"
+        }
+    },
+    "austin": {
+        "name": "Austin",
+        "full_name": "Austin-Round Rock, TX",
+        "msa_code": "12420",
+        "color": "#9DC183",  # Sage
+        "series": {
+            "unemployment": "AUST448URN",
+            "employment": "AUST448NA",
+            "real_gdp": "RGMP12420",
+            "per_capita_income": "AUST448PCPI",
+            "home_price_index": "ATNHPIUS12420Q"
+        }
+    },
+    "charlotte": {
+        "name": "Charlotte",
+        "full_name": "Charlotte-Concord, NC-SC",
+        "msa_code": "16740",
+        "color": "#8ECAE6",  # Powder Blue
+        "series": {
+            "unemployment": "CHAR737URN",
+            "employment": "CHAR737NA",
+            "real_gdp": "RGMP16740",
+            "per_capita_income": "CHAR737PCPI",
+            "home_price_index": "ATNHPIUS16740Q"
+        }
+    },
+    "denver": {
+        "name": "Denver",
+        "full_name": "Denver-Aurora, CO",
+        "msa_code": "19740",
+        "color": "#C3B1E1",  # Lavender
+        "series": {
+            "unemployment": "DENV708URN",
+            "employment": "DENV708NA",
+            "real_gdp": "RGMP19740",
+            "per_capita_income": "DENV708PCPI",
+            "home_price_index": "ATNHPIUS19740Q"
+        }
+    }
+}
+
+COMPARISON_METRIC_CONFIG = {
+    "unemployment": {
+        "name": "Unemployment Rate",
+        "unit": "%",
+        "frequency": "monthly",
+        "format": "percent"
+    },
+    "employment": {
+        "name": "Nonfarm Employment",
+        "unit": "thousands",
+        "frequency": "monthly",
+        "format": "number"
+    },
+    "real_gdp": {
+        "name": "Real GDP",
+        "unit": "millions $",
+        "frequency": "annual",
+        "format": "billions"
+    },
+    "per_capita_income": {
+        "name": "Per Capita Income",
+        "unit": "$",
+        "frequency": "annual",
+        "format": "currency"
+    },
+    "home_price_index": {
+        "name": "Home Price Index",
+        "unit": "index",
+        "frequency": "quarterly",
+        "format": "yoy_change"
+    }
 }
 
 # Industry classification for Census CBP (NAICS 2-digit)
@@ -122,6 +284,74 @@ INDUSTRY_SECTORS = {
     "72": "Hospitality",
     "81": "Other Services",
     "92": "Public Admin"
+}
+
+# =============================================================================
+# GLOBAL TRADE DATA
+# Source: ITA Metropolitan Export Series (https://www.trade.gov/ita-metropolitan-export-series)
+# Data updated annually - last update: 2023 data
+# =============================================================================
+TRADE_DATA = {
+    "data_year": 2023,
+    "source": "ITA Metropolitan Export Series",
+    "source_url": "https://www.trade.gov/ita-metropolitan-export-series",
+
+    # Raleigh-Cary MSA exports
+    "raleigh_msa": {
+        "name": "Raleigh-Cary MSA",
+        "total_exports": 6.0,  # billions USD
+        "yoy_change": 3.2,  # percent
+        "export_intensity": 5.8,  # exports as % of GDP
+    },
+
+    # Combined Triangle region
+    "triangle_region": {
+        "name": "Research Triangle",
+        "total_exports": 10.9,  # Raleigh + Durham-Chapel Hill
+        "note": "Raleigh-Cary ($6.0B) + Durham-Chapel Hill ($4.9B)"
+    },
+
+    # Top export industries (Raleigh MSA)
+    "top_industries": [
+        {"name": "Pharmaceuticals & Medicines", "value": 1.8, "percent": 30.0},
+        {"name": "Computer & Electronics", "value": 0.9, "percent": 15.0},
+        {"name": "Machinery", "value": 0.7, "percent": 11.7},
+        {"name": "Chemicals", "value": 0.5, "percent": 8.3},
+        {"name": "Transportation Equipment", "value": 0.4, "percent": 6.7},
+        {"name": "Electrical Equipment", "value": 0.3, "percent": 5.0},
+        {"name": "Plastics & Rubber", "value": 0.2, "percent": 3.3},
+        {"name": "Food & Beverages", "value": 0.2, "percent": 3.3},
+    ],
+
+    # Top destination countries (NC state data, representative of Triangle)
+    "top_destinations": [
+        {"country": "Canada", "value": 1.2, "percent": 20.2, "flag": "🇨🇦"},
+        {"country": "China", "value": 0.8, "percent": 13.8, "flag": "🇨🇳"},
+        {"country": "Mexico", "value": 0.7, "percent": 11.7, "flag": "🇲🇽"},
+        {"country": "France", "value": 0.4, "percent": 6.7, "flag": "🇫🇷"},
+        {"country": "Japan", "value": 0.3, "percent": 5.0, "flag": "🇯🇵"},
+        {"country": "Germany", "value": 0.3, "percent": 5.0, "flag": "🇩🇪"},
+        {"country": "United Kingdom", "value": 0.2, "percent": 3.3, "flag": "🇬🇧"},
+        {"country": "Belgium", "value": 0.2, "percent": 3.3, "flag": "🇧🇪"},
+    ],
+
+    # Historical trend (Raleigh MSA total exports in billions)
+    "export_trend": [
+        {"year": 2018, "value": 4.8},
+        {"year": 2019, "value": 5.1},
+        {"year": 2020, "value": 4.6},  # COVID dip
+        {"year": 2021, "value": 5.2},
+        {"year": 2022, "value": 5.7},
+        {"year": 2023, "value": 6.0},
+    ],
+
+    # Key trading context
+    "context": {
+        "nc_total_exports": 42.8,  # NC state total in billions
+        "raleigh_share_of_nc": 14.0,  # percent
+        "us_rank": 47,  # Raleigh MSA rank among US metros
+        "top_50_msa": True,
+    }
 }
 
 
@@ -170,8 +400,13 @@ def fetch_fred_series(series_id, start_date=None, end_date=None):
 
 def fetch_all_fred_data(start_year=2015):
     """
-    Fetch all configured FRED series.
+    Fetch all configured FRED series for Raleigh MSA.
     Uses caching to minimize API calls.
+
+    YoY calculations based on frequency:
+    - Monthly: compare to 12 months ago
+    - Quarterly: compare to 4 quarters ago
+    - Annual: compare to 1 year ago
     """
     cache_key = f"fred_economy_data_{start_year}"
     cached = load_from_cache(cache_key, duration_hours=24)
@@ -186,7 +421,8 @@ def fetch_all_fred_data(start_year=2015):
         result[key] = {
             "name": config["name"],
             "unit": config["unit"],
-            "category": config["category"],
+            "category": config.get("category", ""),
+            "frequency": config.get("frequency", "monthly"),
             "series_id": config["series_id"],
             "observations": series_data["data"],
             "error": series_data.get("error")
@@ -198,9 +434,18 @@ def fetch_all_fred_data(start_year=2015):
             result[key]["latest_value"] = latest["value"]
             result[key]["latest_date"] = latest["date"]
 
-            # Calculate YoY change if enough data
-            if len(series_data["data"]) >= 12:
-                year_ago_idx = -13 if len(series_data["data"]) > 12 else 0
+            # Calculate YoY change based on frequency
+            frequency = config.get("frequency", "monthly")
+            if frequency == "monthly":
+                periods_back = 12
+            elif frequency == "quarterly":
+                periods_back = 4
+            else:  # annual
+                periods_back = 1
+
+            # Need at least periods_back + 1 observations for YoY calc
+            if len(series_data["data"]) > periods_back:
+                year_ago_idx = len(series_data["data"]) - periods_back - 1
                 year_ago = series_data["data"][year_ago_idx]["value"]
                 if year_ago != 0:
                     result[key]["yoy_change"] = round(
@@ -209,6 +454,174 @@ def fetch_all_fred_data(start_year=2015):
 
     save_to_cache(cache_key, result)
     return result
+
+
+def fetch_national_indicators(start_year=2020):
+    """
+    Fetch national economic indicators for context at top of dashboard.
+    Returns latest values and YoY changes for GDP, unemployment, wages, inflation.
+
+    YoY calculations:
+    - Monthly series (UNRATE, PCEPILFE): compare to 12 months ago
+    - Quarterly series (GDPC1, LES1252881600Q): compare to 4 quarters ago
+    """
+    cache_key = f"fred_national_{start_year}"
+    cached = load_from_cache(cache_key, duration_hours=24)
+    if cached:
+        return cached
+
+    start_date = f"{start_year}-01-01"
+    result = {}
+
+    for key, config in NATIONAL_SERIES.items():
+        series_data = fetch_fred_series(config["series_id"], start_date=start_date)
+        result[key] = {
+            "name": config["name"],
+            "unit": config["unit"],
+            "series_id": config["series_id"],
+            "frequency": config.get("frequency", "monthly"),
+            "description": config.get("description", ""),
+            "observations": series_data["data"],
+            "error": series_data.get("error")
+        }
+
+        if series_data["data"]:
+            latest = series_data["data"][-1]
+            result[key]["latest_value"] = latest["value"]
+            result[key]["latest_date"] = latest["date"]
+
+            # Calculate YoY change based on frequency
+            frequency = config.get("frequency", "monthly")
+            if frequency == "monthly":
+                periods_back = 12  # 12 months for YoY
+            else:  # quarterly
+                periods_back = 4   # 4 quarters for YoY
+
+            # Need at least periods_back + 1 observations for YoY calc
+            if len(series_data["data"]) > periods_back:
+                year_ago_idx = len(series_data["data"]) - periods_back - 1
+                year_ago = series_data["data"][year_ago_idx]["value"]
+                if year_ago != 0:
+                    result[key]["yoy_change"] = round(
+                        (latest["value"] - year_ago) / year_ago * 100, 1
+                    )
+
+    save_to_cache(cache_key, result)
+    return result
+
+
+def fetch_nc_indicators(start_year=2015):
+    """
+    Fetch North Carolina state-level economic indicators.
+    """
+    cache_key = f"fred_nc_{start_year}"
+    cached = load_from_cache(cache_key, duration_hours=24)
+    if cached:
+        return cached
+
+    start_date = f"{start_year}-01-01"
+    result = {}
+
+    for key, config in NC_STATE_SERIES.items():
+        series_data = fetch_fred_series(config["series_id"], start_date=start_date)
+        result[key] = {
+            "name": config["name"],
+            "unit": config["unit"],
+            "category": config.get("category", ""),
+            "series_id": config["series_id"],
+            "observations": series_data["data"],
+            "error": series_data.get("error")
+        }
+
+        if series_data["data"]:
+            latest = series_data["data"][-1]
+            result[key]["latest_value"] = latest["value"]
+            result[key]["latest_date"] = latest["date"]
+
+            # Calculate YoY change
+            if len(series_data["data"]) >= 12:
+                year_ago_idx = max(0, len(series_data["data"]) - 13)
+                year_ago = series_data["data"][year_ago_idx]["value"]
+                if year_ago != 0:
+                    result[key]["yoy_change"] = round(
+                        (latest["value"] - year_ago) / year_ago * 100, 1
+                    )
+
+    save_to_cache(cache_key, result)
+    return result
+
+
+# =============================================================================
+# METRO COMPARISON FUNCTIONS
+# =============================================================================
+def fetch_metro_data(metro_key, start_year=2015):
+    """
+    Fetch all metrics for a single metro.
+    Returns dict with latest values and YoY changes.
+    """
+    cache_key = f"fred_metro_{metro_key}_{start_year}"
+    cached = load_from_cache(cache_key, duration_hours=24)
+    if cached:
+        return cached
+
+    metro = METRO_CONFIG.get(metro_key)
+    if not metro:
+        return {"error": f"Unknown metro: {metro_key}"}
+
+    start_date = f"{start_year}-01-01"
+    result = {
+        "name": metro["name"],
+        "full_name": metro["full_name"],
+        "color": metro["color"],
+        "metrics": {}
+    }
+
+    for metric_key, series_id in metro["series"].items():
+        metric_config = COMPARISON_METRIC_CONFIG[metric_key]
+        series_data = fetch_fred_series(series_id, start_date=start_date)
+
+        metric_result = {
+            "name": metric_config["name"],
+            "unit": metric_config["unit"],
+            "series_id": series_id,
+            "observations": series_data["data"],
+            "error": series_data.get("error")
+        }
+
+        if series_data["data"]:
+            latest = series_data["data"][-1]
+            metric_result["latest_value"] = latest["value"]
+            metric_result["latest_date"] = latest["date"]
+
+            # Calculate YoY change based on frequency
+            frequency = metric_config["frequency"]
+            if frequency == "monthly":
+                periods_back = 12
+            elif frequency == "quarterly":
+                periods_back = 4
+            else:  # annual
+                periods_back = 1
+
+            if len(series_data["data"]) > periods_back:
+                year_ago_idx = len(series_data["data"]) - periods_back - 1
+                year_ago = series_data["data"][year_ago_idx]["value"]
+                if year_ago != 0:
+                    metric_result["yoy_change"] = round(
+                        (latest["value"] - year_ago) / year_ago * 100, 1
+                    )
+
+        result["metrics"][metric_key] = metric_result
+
+    save_to_cache(cache_key, result)
+    return result
+
+
+def fetch_all_metros(start_year=2015):
+    """Fetch data for all configured metros."""
+    results = {}
+    for metro_key in METRO_CONFIG.keys():
+        results[metro_key] = fetch_metro_data(metro_key, start_year)
+    return results
 
 
 # =============================================================================
@@ -259,8 +672,8 @@ def fetch_census_cbp_county():
             emp = int(row[3]) if row[3] else 0
             payroll = int(row[4]) if row[4] else 0
 
-            # Only include 2-digit NAICS (sector level)
-            if len(naics) == 2 or naics in ["31-33", "44-45", "48-49"]:
+            # Only include 2-digit NAICS (sector level), excluding "00" total
+            if (len(naics) == 2 or naics in ["31-33", "44-45", "48-49"]) and naics != "00":
                 sector_name = INDUSTRY_SECTORS.get(naics, label)
                 result["by_industry"][naics] = {
                     "name": sector_name,
@@ -400,32 +813,66 @@ def index():
 def get_overview():
     """
     API endpoint for economy overview data.
-    Returns key metrics from FRED + Census CBP.
+    Returns hierarchical data: National → Raleigh MSA → NC State.
     """
-    fred_data = fetch_all_fred_data(start_year=2015)
+    # Fetch all three geographic levels
+    national_data = fetch_national_indicators(start_year=2020)
+    raleigh_data = fetch_all_fred_data(start_year=2015)
+    nc_data = fetch_nc_indicators(start_year=2015)
     cbp_data = fetch_census_cbp_county()
 
-    # Calculate derived metrics
-    health_score = calculate_economic_health_score(fred_data)
+    # Calculate derived metrics for Raleigh
+    health_score = calculate_economic_health_score(raleigh_data)
     diversity_score = calculate_industry_diversity(cbp_data)
 
-    # Format summary stats
-    summary = {
+    # Format national headline indicators
+    national_summary = {
+        "real_gdp_yoy": national_data.get("real_gdp", {}).get("yoy_change"),
+        "real_gdp_date": national_data.get("real_gdp", {}).get("latest_date"),
+        "unemployment_rate": national_data.get("unemployment_rate", {}).get("latest_value"),
+        "unemployment_date": national_data.get("unemployment_rate", {}).get("latest_date"),
+        "real_earnings": national_data.get("real_earnings", {}).get("latest_value"),
+        "real_earnings_yoy": national_data.get("real_earnings", {}).get("yoy_change"),
+        "core_pce_yoy": national_data.get("core_pce", {}).get("yoy_change"),
+        "core_pce_date": national_data.get("core_pce", {}).get("latest_date"),
+    }
+
+    # Format Raleigh summary stats
+    raleigh_summary = {
         "health_score": health_score,
         "diversity_score": diversity_score,
-        "unemployment_rate": fred_data.get("unemployment_rate", {}).get("latest_value"),
-        "total_employment": fred_data.get("employment", {}).get("latest_value"),
-        "gdp": fred_data.get("gdp", {}).get("latest_value"),
-        "per_capita_income": fred_data.get("personal_income", {}).get("latest_value"),
+        "unemployment_rate": raleigh_data.get("unemployment_rate", {}).get("latest_value"),
+        "total_employment": raleigh_data.get("employment", {}).get("latest_value"),
+        "gdp": raleigh_data.get("real_gdp", {}).get("latest_value"),
+        "per_capita_income": raleigh_data.get("per_capita_income", {}).get("latest_value"),
+        "home_price_yoy": raleigh_data.get("housing_price_index", {}).get("yoy_change"),
+        "home_price_index": raleigh_data.get("housing_price_index", {}).get("latest_value"),
         "total_establishments": cbp_data.get("totals", {}).get("establishments"),
         "total_employees_cbp": cbp_data.get("totals", {}).get("employees"),
-        "business_applications": fred_data.get("business_applications", {}).get("latest_value"),
+    }
+
+    # Format NC summary stats
+    nc_summary = {
+        "unemployment_rate": nc_data.get("unemployment_rate", {}).get("latest_value"),
+        "employment": nc_data.get("employment", {}).get("latest_value"),
+        "labor_force": nc_data.get("labor_force", {}).get("latest_value"),
+        "personal_income": nc_data.get("personal_income", {}).get("latest_value"),
     }
 
     return jsonify({
-        "summary": summary,
-        "fred_data": fred_data,
-        "cbp_data": cbp_data,
+        "national": {
+            "summary": national_summary,
+            "data": national_data
+        },
+        "raleigh": {
+            "summary": raleigh_summary,
+            "data": raleigh_data,
+            "cbp_data": cbp_data
+        },
+        "nc": {
+            "summary": nc_summary,
+            "data": nc_data
+        },
         "api_status": {
             "fred_configured": bool(FRED_API_KEY),
             "census_configured": bool(CENSUS_API_KEY)
@@ -531,4 +978,65 @@ def get_timeseries(series_key):
         "series": series_key,
         "data": series_data,
         "api_configured": bool(FRED_API_KEY)
+    })
+
+
+@economy_bp.route("/api/metro-comparison")
+def get_metro_comparison():
+    """
+    API endpoint for metro comparison data.
+    Returns all metrics for all peer metros.
+    """
+    all_data = fetch_all_metros(start_year=2015)
+
+    # Build comparison summary table
+    comparison = {}
+    for metric_key in COMPARISON_METRIC_CONFIG.keys():
+        comparison[metric_key] = {
+            "name": COMPARISON_METRIC_CONFIG[metric_key]["name"],
+            "unit": COMPARISON_METRIC_CONFIG[metric_key]["unit"],
+            "format": COMPARISON_METRIC_CONFIG[metric_key]["format"],
+            "values": {}
+        }
+        for metro_key, metro_data in all_data.items():
+            metrics = metro_data.get("metrics", {})
+            if metric_key in metrics:
+                comparison[metric_key]["values"][metro_key] = {
+                    "latest": metrics[metric_key].get("latest_value"),
+                    "yoy_change": metrics[metric_key].get("yoy_change"),
+                    "date": metrics[metric_key].get("latest_date")
+                }
+
+    # Build metro list with colors
+    metros = []
+    for metro_key, config in METRO_CONFIG.items():
+        metros.append({
+            "key": metro_key,
+            "name": config["name"],
+            "full_name": config["full_name"],
+            "color": config["color"]
+        })
+
+    return jsonify({
+        "metros": metros,
+        "comparison": comparison,
+        "metro_data": all_data,
+        "api_status": {
+            "fred_configured": bool(FRED_API_KEY)
+        }
+    })
+
+
+@economy_bp.route("/api/trade")
+def get_trade_data():
+    """
+    API endpoint for global trade data.
+    Returns export data for Raleigh MSA from ITA Metropolitan Export Series.
+    Data is updated annually.
+    """
+    return jsonify({
+        "trade_data": TRADE_DATA,
+        "data_year": TRADE_DATA["data_year"],
+        "source": TRADE_DATA["source"],
+        "source_url": TRADE_DATA["source_url"]
     })

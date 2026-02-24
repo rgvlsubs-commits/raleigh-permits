@@ -7,8 +7,12 @@ let laborChart = null;
 let industryChart = null;
 let employmentSectorChart = null;
 let growthChart = null;
-let businessAppsChart = null;
-let startupChart = null;
+let metroComparisonChart = null;
+let metroComparisonData = null;
+let tradeData = null;
+let exportIndustriesChart = null;
+let exportDestinationsChart = null;
+let exportTrendChart = null;
 
 // Current selections
 let currentLaborMetric = 'unemployment_rate';
@@ -43,6 +47,23 @@ const industryColors = [
     wesAnderson.burgundy
 ];
 
+// Metro comparison colors (matching blueprint config)
+const metroColors = {
+    raleigh: '#722F37',    // Burgundy
+    nashville: '#E9B44C',  // Mustard
+    austin: '#9DC183',     // Sage
+    charlotte: '#8ECAE6',  // Powder Blue
+    denver: '#C3B1E1'      // Lavender
+};
+
+const metroNames = {
+    raleigh: 'Raleigh',
+    nashville: 'Nashville',
+    austin: 'Austin',
+    charlotte: 'Charlotte',
+    denver: 'Denver'
+};
+
 // =============================================================================
 // API FUNCTIONS
 // =============================================================================
@@ -61,6 +82,18 @@ async function fetchIndustryData() {
 async function fetchZipData() {
     const response = await fetch('/economy/api/zip');
     if (!response.ok) throw new Error('Failed to fetch zip data');
+    return response.json();
+}
+
+async function fetchMetroComparison() {
+    const response = await fetch('/economy/api/metro-comparison');
+    if (!response.ok) throw new Error('Failed to fetch metro comparison data');
+    return response.json();
+}
+
+async function fetchTradeData() {
+    const response = await fetch('/economy/api/trade');
+    if (!response.ok) throw new Error('Failed to fetch trade data');
     return response.json();
 }
 
@@ -145,10 +178,10 @@ function createIndustryChart(industries) {
         industryChart.destroy();
     }
 
-    // Get top 8 industries by establishments
+    // Get top 10 industries by establishments
     const sorted = Object.values(industries)
         .sort((a, b) => b.establishments - a.establishments)
-        .slice(0, 8);
+        .slice(0, 10);
 
     if (sorted.length === 0) {
         ctx.font = '16px Source Sans Pro';
@@ -159,31 +192,32 @@ function createIndustryChart(industries) {
     }
 
     industryChart = new Chart(ctx, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
             labels: sorted.map(i => i.name),
             datasets: [{
+                label: 'Establishments',
                 data: sorted.map(i => i.establishments),
                 backgroundColor: industryColors.slice(0, sorted.length),
-                borderWidth: 3,
-                borderColor: wesAnderson.burgundy
+                borderColor: wesAnderson.burgundy,
+                borderWidth: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            indexAxis: 'y',
             plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        color: wesAnderson.burgundy,
-                        font: { size: 11 }
-                    }
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: wesAnderson.dustyRose + '30' }
                 },
-                title: {
-                    display: true,
-                    text: 'By Establishments',
-                    color: wesAnderson.burgundy
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10 } }
                 }
             }
         }
@@ -302,106 +336,293 @@ function createGrowthChart(fredData, metric) {
     });
 }
 
-function createBusinessAppsChart(fredData) {
-    const ctx = document.getElementById('business-apps-chart').getContext('2d');
+// =============================================================================
+// METRO COMPARISON FUNCTIONS
+// =============================================================================
+function populateMetroComparisonTable(data) {
+    const comparison = data.comparison;
+    const metros = ['raleigh', 'nashville', 'austin', 'charlotte', 'denver'];
 
-    if (businessAppsChart) {
-        businessAppsChart.destroy();
+    // Unemployment Rate
+    metros.forEach(metro => {
+        const val = comparison.unemployment?.values[metro]?.latest;
+        const el = document.getElementById(`cmp-${metro}-unemployment`);
+        if (el) el.textContent = val != null ? `${val.toFixed(1)}%` : '--';
+    });
+
+    // Job Growth (YoY from employment)
+    metros.forEach(metro => {
+        const val = comparison.employment?.values[metro]?.yoy_change;
+        const el = document.getElementById(`cmp-${metro}-job-growth`);
+        if (el) el.textContent = val != null ? `${val > 0 ? '+' : ''}${val.toFixed(1)}%` : '--';
+    });
+
+    // Home Price Growth (YoY)
+    metros.forEach(metro => {
+        const val = comparison.home_price_index?.values[metro]?.yoy_change;
+        const el = document.getElementById(`cmp-${metro}-home-price`);
+        if (el) el.textContent = val != null ? `${val > 0 ? '+' : ''}${val.toFixed(1)}%` : '--';
+    });
+
+    // Per Capita Income
+    metros.forEach(metro => {
+        const val = comparison.per_capita_income?.values[metro]?.latest;
+        const el = document.getElementById(`cmp-${metro}-income`);
+        if (el) el.textContent = val != null ? `$${Math.round(val / 1000)}K` : '--';
+    });
+
+    // Real GDP (in billions)
+    metros.forEach(metro => {
+        const val = comparison.real_gdp?.values[metro]?.latest;
+        const el = document.getElementById(`cmp-${metro}-gdp`);
+        if (el) el.textContent = val != null ? `$${Math.round(val / 1000)}B` : '--';
+    });
+}
+
+function createMetroComparisonChart(metroData) {
+    const canvas = document.getElementById('metro-unemployment-chart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    if (metroComparisonChart) {
+        metroComparisonChart.destroy();
     }
 
-    const seriesData = fredData['business_applications'];
-    if (!seriesData || !seriesData.observations || seriesData.observations.length === 0) {
-        ctx.font = '14px Source Sans Pro';
-        ctx.fillStyle = wesAnderson.burgundy;
-        ctx.textAlign = 'center';
-        ctx.fillText('No data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
-        return;
-    }
+    const datasets = [];
+    const metros = ['raleigh', 'nashville', 'austin', 'charlotte', 'denver'];
 
-    // Get last 3 years of data
-    const recent = seriesData.observations.slice(-36);
-    const labels = recent.map(o => o.date.substring(0, 7));
-    const values = recent.map(o => o.value);
+    // Find common date range
+    let allDates = new Set();
+    metros.forEach(metro => {
+        const obs = metroData[metro]?.metrics?.unemployment?.observations || [];
+        obs.forEach(o => allDates.add(o.date));
+    });
+    const dates = Array.from(allDates).sort().slice(-60); // Last 5 years
 
-    businessAppsChart = new Chart(ctx, {
-        type: 'bar',
+    metros.forEach(metro => {
+        const obs = metroData[metro]?.metrics?.unemployment?.observations || [];
+        const obsMap = {};
+        obs.forEach(o => { obsMap[o.date] = o.value; });
+
+        datasets.push({
+            label: metroNames[metro],
+            data: dates.map(d => obsMap[d] || null),
+            borderColor: metroColors[metro],
+            backgroundColor: 'transparent',
+            borderWidth: metro === 'raleigh' ? 3 : 2,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            tension: 0.3
+        });
+    });
+
+    metroComparisonChart = new Chart(ctx, {
+        type: 'line',
         data: {
-            labels: labels,
-            datasets: [{
-                label: 'Business Applications',
-                data: values,
-                backgroundColor: wesAnderson.mustard,
-                borderColor: wesAnderson.burgundy,
-                borderWidth: 1
-            }]
+            labels: dates.map(d => d.substring(0, 7)),
+            datasets: datasets
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: {
+                    position: 'top',
+                    labels: { usePointStyle: true }
+                }
             },
             scales: {
                 y: {
-                    beginAtZero: true,
+                    title: { display: true, text: 'Unemployment Rate (%)' },
                     grid: { color: wesAnderson.dustyRose + '30' }
                 },
                 x: {
                     ticks: { maxTicksLimit: 12 },
-                    grid: { display: false }
+                    grid: { color: wesAnderson.dustyRose + '30' }
                 }
             }
         }
     });
 }
 
-function createStartupChart(fredData) {
-    const ctx = document.getElementById('startup-chart').getContext('2d');
+// =============================================================================
+// GLOBAL TRADE FUNCTIONS
+// =============================================================================
+function updateTradeStats(data) {
+    const trade = data.trade_data;
 
-    if (startupChart) {
-        startupChart.destroy();
+    // Total exports
+    document.getElementById('total-exports').textContent =
+        `$${trade.raleigh_msa.total_exports}B`;
+
+    // YoY growth
+    const growth = trade.raleigh_msa.yoy_change;
+    document.getElementById('export-growth').textContent =
+        `${growth > 0 ? '+' : ''}${growth}%`;
+
+    // Triangle total
+    document.getElementById('triangle-exports').textContent =
+        `$${trade.triangle_region.total_exports}B`;
+
+    // NC share
+    document.getElementById('nc-share').textContent =
+        `${trade.context.raleigh_share_of_nc}%`;
+}
+
+function createExportIndustriesChart(data) {
+    const ctx = document.getElementById('export-industries-chart').getContext('2d');
+
+    if (exportIndustriesChart) {
+        exportIndustriesChart.destroy();
     }
 
-    const seriesData = fredData['high_propensity_applications'];
-    if (!seriesData || !seriesData.observations || seriesData.observations.length === 0) {
-        ctx.font = '14px Source Sans Pro';
-        ctx.fillStyle = wesAnderson.burgundy;
-        ctx.textAlign = 'center';
-        ctx.fillText('No data available', ctx.canvas.width / 2, ctx.canvas.height / 2);
-        return;
-    }
+    const industries = data.trade_data.top_industries;
 
-    const recent = seriesData.observations.slice(-36);
-    const labels = recent.map(o => o.date.substring(0, 7));
-    const values = recent.map(o => o.value);
-
-    startupChart = new Chart(ctx, {
-        type: 'line',
+    exportIndustriesChart = new Chart(ctx, {
+        type: 'bar',
         data: {
-            labels: labels,
+            labels: industries.map(i => i.name),
             datasets: [{
-                label: 'High-Propensity Applications',
-                data: values,
-                borderColor: wesAnderson.terracotta,
-                backgroundColor: wesAnderson.terracotta + '30',
-                fill: true,
-                tension: 0.3,
-                pointRadius: 2
+                label: 'Exports ($B)',
+                data: industries.map(i => i.value),
+                backgroundColor: [
+                    wesAnderson.burgundy,
+                    wesAnderson.powderBlue,
+                    wesAnderson.sage,
+                    wesAnderson.mustard,
+                    wesAnderson.salmon,
+                    wesAnderson.lavender,
+                    wesAnderson.terracotta,
+                    wesAnderson.ochre
+                ],
+                borderColor: wesAnderson.burgundy,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `$${ctx.raw}B (${industries[ctx.dataIndex].percent}%)`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: wesAnderson.dustyRose + '30' },
+                    title: { display: true, text: 'Exports ($ Billions)' }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 10 } }
+                }
+            }
+        }
+    });
+}
+
+function createExportDestinationsChart(data) {
+    const ctx = document.getElementById('export-destinations-chart').getContext('2d');
+
+    if (exportDestinationsChart) {
+        exportDestinationsChart.destroy();
+    }
+
+    const destinations = data.trade_data.top_destinations;
+
+    exportDestinationsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: destinations.map(d => `${d.flag} ${d.country}`),
+            datasets: [{
+                label: 'Exports ($B)',
+                data: destinations.map(d => d.value),
+                backgroundColor: [
+                    wesAnderson.burgundy,
+                    wesAnderson.mustard,
+                    wesAnderson.sage,
+                    wesAnderson.powderBlue,
+                    wesAnderson.salmon,
+                    wesAnderson.lavender,
+                    wesAnderson.terracotta,
+                    wesAnderson.ochre
+                ],
+                borderColor: wesAnderson.burgundy,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `$${ctx.raw}B (${destinations[ctx.dataIndex].percent}%)`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    grid: { color: wesAnderson.dustyRose + '30' },
+                    title: { display: true, text: 'Exports ($ Billions)' }
+                },
+                y: {
+                    grid: { display: false },
+                    ticks: { font: { size: 11 } }
+                }
+            }
+        }
+    });
+}
+
+function createExportTrendChart(data) {
+    const ctx = document.getElementById('export-trend-chart').getContext('2d');
+
+    if (exportTrendChart) {
+        exportTrendChart.destroy();
+    }
+
+    const trend = data.trade_data.export_trend;
+
+    exportTrendChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: trend.map(t => t.year.toString()),
+            datasets: [{
+                label: 'Total Exports ($B)',
+                data: trend.map(t => t.value),
+                backgroundColor: wesAnderson.burgundy + 'CC',
+                borderColor: wesAnderson.burgundy,
+                borderWidth: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `$${ctx.raw}B in exports`
+                    }
+                }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    grid: { color: wesAnderson.dustyRose + '30' }
+                    grid: { color: wesAnderson.dustyRose + '30' },
+                    title: { display: true, text: 'Exports ($ Billions)' }
                 },
                 x: {
-                    ticks: { maxTicksLimit: 12 },
                     grid: { display: false }
                 }
             }
@@ -473,33 +694,85 @@ function sortZipTable(column) {
 }
 
 // =============================================================================
-// STATS DISPLAY
+// STATS DISPLAY - THREE GEOGRAPHIC LEVELS
 // =============================================================================
-function updateStatsDisplay(summary, fredData) {
+function updateNationalStats(nationalSummary) {
+    // Real GDP Growth (YoY)
+    const gdpGrowth = nationalSummary.real_gdp_yoy;
+    document.getElementById('us-gdp-growth').textContent =
+        gdpGrowth != null ? `${gdpGrowth.toFixed(1)}%` : '--';
+
+    // US Unemployment Rate
+    const unemp = nationalSummary.unemployment_rate;
+    document.getElementById('us-unemployment').textContent =
+        unemp != null ? `${unemp.toFixed(1)}%` : '--';
+
+    // Real Wage Growth (YoY)
+    const wageGrowth = nationalSummary.real_earnings_yoy;
+    document.getElementById('us-wage-growth').textContent =
+        wageGrowth != null ? `${wageGrowth > 0 ? '+' : ''}${wageGrowth.toFixed(1)}%` : '--';
+
+    // Core PCE Inflation (YoY)
+    const inflation = nationalSummary.core_pce_yoy;
+    document.getElementById('us-inflation').textContent =
+        inflation != null ? `${inflation.toFixed(1)}%` : '--';
+}
+
+function updateRaleighStats(raleighSummary) {
     // Unemployment Rate
-    const unemp = summary.unemployment_rate;
+    const unemp = raleighSummary.unemployment_rate;
     document.getElementById('unemployment-rate').textContent =
-        unemp ? `${unemp.toFixed(1)}%` : '--';
+        unemp != null ? `${unemp.toFixed(1)}%` : '--';
 
     // Total Employment (in thousands)
-    const emp = summary.total_employment;
+    const emp = raleighSummary.total_employment;
     document.getElementById('total-employment').textContent =
-        emp ? `${Math.round(emp)}K` : '--';
+        emp != null ? `${Math.round(emp)}K` : '--';
 
-    // GDP (convert millions to billions)
-    const gdp = summary.gdp;
+    // Real GDP (convert millions to billions)
+    const gdp = raleighSummary.gdp;
     document.getElementById('gdp').textContent =
-        gdp ? `$${(gdp / 1000).toFixed(1)}B` : '--';
+        gdp != null ? `$${(gdp / 1000).toFixed(0)}B` : '--';
 
     // Per Capita Income
-    const pci = summary.per_capita_income;
+    const pci = raleighSummary.per_capita_income;
     document.getElementById('per-capita-income').textContent =
-        pci ? `$${Math.round(pci).toLocaleString()}` : '--';
+        pci != null ? `$${Math.round(pci).toLocaleString()}` : '--';
 
-    // Business Applications
-    const bizApps = summary.business_applications;
-    document.getElementById('business-apps').textContent =
-        bizApps ? Math.round(bizApps).toLocaleString() : '--';
+    // Home Price Growth (YoY)
+    const hpg = raleighSummary.home_price_yoy;
+    document.getElementById('home-price-growth').textContent =
+        hpg != null ? `${hpg > 0 ? '+' : ''}${hpg.toFixed(1)}%` : '--';
+}
+
+function updateNCStats(ncSummary) {
+    // NC Unemployment Rate
+    const unemp = ncSummary.unemployment_rate;
+    document.getElementById('nc-unemployment').textContent =
+        unemp != null ? `${unemp.toFixed(1)}%` : '--';
+
+    // NC Employment (in millions - divide thousands by 1000)
+    const emp = ncSummary.employment;
+    document.getElementById('nc-employment').textContent =
+        emp != null ? `${(emp / 1000).toFixed(2)}M` : '--';
+
+    // NC Per Capita Income
+    const pci = ncSummary.personal_income;
+    document.getElementById('nc-income').textContent =
+        pci != null ? `$${Math.round(pci).toLocaleString()}` : '--';
+}
+
+function updateStatsDisplay(data) {
+    // Update all three geographic levels
+    if (data.national && data.national.summary) {
+        updateNationalStats(data.national.summary);
+    }
+    if (data.raleigh && data.raleigh.summary) {
+        updateRaleighStats(data.raleigh.summary);
+    }
+    if (data.nc && data.nc.summary) {
+        updateNCStats(data.nc.summary);
+    }
 }
 
 function showApiStatus(apiStatus) {
@@ -524,30 +797,49 @@ function showApiStatus(apiStatus) {
 async function loadData() {
     try {
         // Fetch all data in parallel
-        const [overview, industries, zipData] = await Promise.all([
+        const [overview, industries, zipData, metroComparison, trade] = await Promise.all([
             fetchOverviewData(),
             fetchIndustryData(),
-            fetchZipData()
+            fetchZipData(),
+            fetchMetroComparison(),
+            fetchTradeData()
         ]);
 
         economyData = overview;
+        metroComparisonData = metroComparison;
+        tradeData = trade;
 
         // Show API status if needed
         showApiStatus(overview.api_status);
 
-        // Update stats
-        updateStatsDisplay(overview.summary, overview.fred_data);
+        // Update stats for all three geographic levels
+        updateStatsDisplay(overview);
 
-        // Create charts
-        createLaborChart(overview.fred_data, currentLaborMetric);
+        // Get Raleigh FRED data for charts
+        const raleighFredData = overview.raleigh?.data || {};
+
+        // Create charts using Raleigh MSA data
+        createLaborChart(raleighFredData, currentLaborMetric);
         createIndustryChart(industries.industries);
         createEmploymentSectorChart(industries.industries);
-        createGrowthChart(overview.fred_data, currentGrowthMetric);
-        createBusinessAppsChart(overview.fred_data);
-        createStartupChart(overview.fred_data);
+        createGrowthChart(raleighFredData, currentGrowthMetric);
 
         // Populate zip table
         populateZipTable(zipData.zip_data);
+
+        // Populate metro comparison (embedded in Economy tab)
+        if (metroComparison) {
+            populateMetroComparisonTable(metroComparison);
+            createMetroComparisonChart(metroComparison.metro_data);
+        }
+
+        // Populate global trade section
+        if (trade) {
+            updateTradeStats(trade);
+            createExportIndustriesChart(trade);
+            createExportDestinationsChart(trade);
+            createExportTrendChart(trade);
+        }
 
         // Hide loading overlay
         document.getElementById('loading').classList.add('hidden');
@@ -568,16 +860,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Labor metric selector
     document.getElementById('labor-metric-select').addEventListener('change', (e) => {
         currentLaborMetric = e.target.value;
-        if (economyData) {
-            createLaborChart(economyData.fred_data, currentLaborMetric);
+        if (economyData && economyData.raleigh) {
+            createLaborChart(economyData.raleigh.data, currentLaborMetric);
         }
     });
 
     // Growth metric selector
     document.getElementById('growth-metric-select').addEventListener('change', (e) => {
         currentGrowthMetric = e.target.value;
-        if (economyData) {
-            createGrowthChart(economyData.fred_data, currentGrowthMetric);
+        if (economyData && economyData.raleigh) {
+            createGrowthChart(economyData.raleigh.data, currentGrowthMetric);
         }
     });
 

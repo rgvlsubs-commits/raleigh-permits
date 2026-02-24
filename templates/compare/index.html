@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Metro Comparison | Raleigh Insights{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">Metro Comparison</h2>
+    <p class="page-subtitle">How Does Raleigh Stack Up Against Peer Cities?</p>
+</div>
+
+<div class="narrative-box collapsed">
+    <div class="narrative-header">
+        <span class="narrative-title">Why These Metros?</span>
+        <span class="narrative-toggle">&#9660;</span>
+    </div>
+    <div class="narrative-content">
+        <h4>Peer Selection Criteria</h4>
+        <ul>
+            <li><strong>Nashville:</strong> Similar growth trajectory, Southern tech hub, major in-migration destination</li>
+            <li><strong>Austin:</strong> Tech-heavy economy, rapid population growth, quality of life focus</li>
+            <li><strong>Charlotte:</strong> NC neighbor, financial services hub, direct competitor for talent</li>
+            <li><strong>Denver:</strong> Knowledge economy, outdoor lifestyle appeal, comparable cost of living</li>
+        </ul>
+        <h4>What to watch</h4>
+        <ul>
+            <li><strong>Unemployment spread:</strong> Lower is better, but very low can signal overheating</li>
+            <li><strong>Job growth:</strong> Sustainable growth is 2-3% annually</li>
+            <li><strong>Home prices:</strong> Rapid appreciation can hurt affordability advantage</li>
+            <li><strong>Income growth:</strong> Rising incomes attract talent and support spending</li>
+        </ul>
+        <p class="context-note">All data from Federal Reserve Economic Data (FRED). Most recent data may have 1-2 month reporting lag.</p>
+    </div>
+</div>
+
+<div id="api-status" class="api-status-banner hidden">
+    <strong>Note:</strong> <span id="api-status-message"></span>
+</div>
+
+<!-- Comparison Table -->
+<section class="table-section comparison-table-section">
+    <h2>Current Snapshot</h2>
+    <p class="section-subtitle">Latest available data for each metric</p>
+    <div class="table-wrapper">
+        <table id="comparison-table">
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th class="metro-col raleigh-col">Raleigh</th>
+                    <th class="metro-col">Nashville</th>
+                    <th class="metro-col">Austin</th>
+                    <th class="metro-col">Charlotte</th>
+                    <th class="metro-col">Denver</th>
+                </tr>
+            </thead>
+            <tbody id="comparison-tbody">
+                <tr>
+                    <td>Unemployment Rate</td>
+                    <td class="raleigh-col" id="raleigh-unemployment">--</td>
+                    <td id="nashville-unemployment">--</td>
+                    <td id="austin-unemployment">--</td>
+                    <td id="charlotte-unemployment">--</td>
+                    <td id="denver-unemployment">--</td>
+                </tr>
+                <tr>
+                    <td>Job Growth (YoY)</td>
+                    <td class="raleigh-col" id="raleigh-job-growth">--</td>
+                    <td id="nashville-job-growth">--</td>
+                    <td id="austin-job-growth">--</td>
+                    <td id="charlotte-job-growth">--</td>
+                    <td id="denver-job-growth">--</td>
+                </tr>
+                <tr>
+                    <td>Home Price Growth (YoY)</td>
+                    <td class="raleigh-col" id="raleigh-home-price">--</td>
+                    <td id="nashville-home-price">--</td>
+                    <td id="austin-home-price">--</td>
+                    <td id="charlotte-home-price">--</td>
+                    <td id="denver-home-price">--</td>
+                </tr>
+                <tr>
+                    <td>Per Capita Income</td>
+                    <td class="raleigh-col" id="raleigh-income">--</td>
+                    <td id="nashville-income">--</td>
+                    <td id="austin-income">--</td>
+                    <td id="charlotte-income">--</td>
+                    <td id="denver-income">--</td>
+                </tr>
+                <tr>
+                    <td>Real GDP</td>
+                    <td class="raleigh-col" id="raleigh-gdp">--</td>
+                    <td id="nashville-gdp">--</td>
+                    <td id="austin-gdp">--</td>
+                    <td id="charlotte-gdp">--</td>
+                    <td id="denver-gdp">--</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- Trend Charts -->
+<section class="charts-section">
+    <div class="chart-container full-width">
+        <div class="chart-header">
+            <h2>Unemployment Rate Trend</h2>
+        </div>
+        <canvas id="unemployment-chart"></canvas>
+    </div>
+</section>
+
+<section class="charts-section">
+    <div class="chart-container full-width">
+        <div class="chart-header">
+            <h2>Home Price Index Trend</h2>
+        </div>
+        <canvas id="home-price-chart"></canvas>
+    </div>
+</section>
+
+<section class="charts-section">
+    <div class="chart-container full-width">
+        <div class="chart-header">
+            <h2>Employment Trend</h2>
+        </div>
+        <canvas id="employment-chart"></canvas>
+    </div>
+</section>
+
+<div class="narrative-box collapsed">
+    <div class="narrative-header">
+        <span class="narrative-title">Key Takeaways</span>
+        <span class="narrative-toggle">&#9660;</span>
+    </div>
+    <div class="narrative-content">
+        <h4>Raleigh's advantages</h4>
+        <ul>
+            <li><strong>Labor market strength:</strong> Consistently lower unemployment than peers</li>
+            <li><strong>Balanced growth:</strong> Strong job creation without overheating</li>
+            <li><strong>Affordability edge:</strong> Home prices rising slower than Austin/Nashville</li>
+        </ul>
+        <h4>Watch areas</h4>
+        <ul>
+            <li><strong>Income gap:</strong> Per capita income trails Denver and Austin</li>
+            <li><strong>Competition for talent:</strong> Charlotte is a direct competitor in NC</li>
+        </ul>
+    </div>
+</div>
+
+<div id="loading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Loading metro comparison data...</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/compare.js') }}"></script>
+{% endblock %}
+
+{% block footer_sources %}
+| <a href="https://fred.stlouisfed.org/" target="_blank">Federal Reserve (FRED)</a>
+{% endblock %}
